@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Container, Alert } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Container, Alert, Row, Col } from 'react-bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import QrScanner from 'react-qr-scanner';
@@ -8,8 +8,10 @@ const UserAttendancePage = () => {
   const [user, setUser] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [facingMode, setFacingMode] = useState("environment"); // Default to back camera
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const qrScannerRef = useRef(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -82,6 +84,14 @@ const UserAttendancePage = () => {
     setMessage('');
   };
 
+  const stopScanning = () => {
+    setScanning(false);
+  };
+
+  const toggleCamera = () => {
+    setFacingMode(prevMode => prevMode === "user" ? "environment" : "user");
+  };
+
   if (!user) {
     return <Container>Please log in to take attendance.</Container>;
   }
@@ -99,8 +109,21 @@ const UserAttendancePage = () => {
             onError={handleError}
             onScan={handleScan}
             style={{ width: '100%' }}
+            facingMode={facingMode}
           />
           <p>Please scan the QR code displayed in the church.</p>
+          <Row className="mt-3">
+            <Col>
+              <Button onClick={toggleCamera}>
+                Switch to {facingMode === "user" ? "Back" : "Front"} Camera
+              </Button>
+            </Col>
+            <Col>
+              <Button variant="danger" onClick={stopScanning}>
+                Stop Scanning
+              </Button>
+            </Col>
+          </Row>
         </div>
       )}
       {message && <Alert variant="info">{message}</Alert>}
