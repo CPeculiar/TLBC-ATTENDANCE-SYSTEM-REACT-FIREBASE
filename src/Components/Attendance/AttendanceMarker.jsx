@@ -19,16 +19,15 @@ const UserAttendancePage = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
-    // Get available cameras
-    navigator.mediaDevices.enumerateDevices()
-      .then(devices => {
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        setCameras(videoDevices);
-        if (videoDevices.length > 0) {
-          setCameraId(videoDevices[0].deviceId);
-        }
-      })
+  // Get available cameras
+  navigator.mediaDevices.enumerateDevices()
+  .then(devices => {
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    setCameras(videoDevices);
+    if (videoDevices.length > 0) {
+      setCameraId(videoDevices[0].deviceId);
+    }
+  })
       .catch(err => {
         console.error("Error enumerating devices:", err);
         setError("Unable to access camera. Please check your device settings.");
@@ -38,11 +37,17 @@ const UserAttendancePage = () => {
   }, []);
 
   const checkLastAttendance = async (userId, churchId) => {
+    try {
     const db = getFirestore();
     const attendanceRef = doc(db, 'attendance', `${userId}_${churchId}`);
     const attendanceDoc = await getDoc(attendanceRef);
     return attendanceDoc.exists();
-  };
+  } catch (err) {
+    console.error("Error checking last attendance:", err);
+    setError("Failed to check attendance history. Please try again.");
+    return false;
+  }
+};
 
   const handleScan = async (data) => {
     if (data) {
@@ -82,15 +87,19 @@ const UserAttendancePage = () => {
         setScanning(false);
         setMessage('Attendance recorded successfully!');
       } catch (err) {
-        setError('Failed to record attendance. Please try again.');
         console.error('Error recording attendance:', err);
+        if (err.code === 'permission-denied') {
+          setError('Permission denied. Please contact your administrator.');
+        } else {
+          setError('Failed to record attendance. Please try again.');
+        }
       }
     }
   };
 
   const handleError = (err) => {
+    console.error('QR Scanner error:', err);
     setError('Error scanning QR code. Please try again.');
-    console.error(err);
   };
 
   const startScanning = () => {
@@ -108,7 +117,7 @@ const UserAttendancePage = () => {
     const nextIndex = (currentIndex + 1) % cameras.length;
     setCameraId(cameras[nextIndex].deviceId);
   };
-
+  
   if (!user) {
     return <Container>Please log in to take attendance.</Container>;
   }
