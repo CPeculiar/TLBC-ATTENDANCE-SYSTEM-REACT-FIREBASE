@@ -8,7 +8,8 @@ const UserAttendancePage = () => {
   const [user, setUser] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
-  const [facingMode, setFacingMode] = useState("environment"); // Default to back camera
+  const [cameraId, setCameraId] = useState('environment');
+  const [cameras, setCameras] = useState([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const qrScannerRef = useRef(null);
@@ -18,6 +19,20 @@ const UserAttendancePage = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
+
+    // Get available cameras
+    navigator.mediaDevices.enumerateDevices()
+      .then(devices => {
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        setCameras(videoDevices);
+        if (videoDevices.length > 0) {
+          setCameraId(videoDevices[0].deviceId);
+        }
+      })
+      .catch(err => {
+        console.error("Error enumerating devices:", err);
+        setError("Unable to access camera. Please check your device settings.");
+      });
 
     return () => unsubscribe();
   }, []);
@@ -89,7 +104,9 @@ const UserAttendancePage = () => {
   };
 
   const toggleCamera = () => {
-    setFacingMode(prevMode => prevMode === "user" ? "environment" : "user");
+    const currentIndex = cameras.findIndex(camera => camera.deviceId === cameraId);
+    const nextIndex = (currentIndex + 1) % cameras.length;
+    setCameraId(cameras[nextIndex].deviceId);
   };
 
   if (!user) {
@@ -109,13 +126,15 @@ const UserAttendancePage = () => {
             onError={handleError}
             onScan={handleScan}
             style={{ width: '100%' }}
-            facingMode={facingMode}
+            constraints={{
+              video: { deviceId: cameraId }
+            }}
           />
           <p>Please scan the QR code displayed in the church.</p>
           <Row className="mt-3">
             <Col>
-              <Button onClick={toggleCamera}>
-                Switch to {facingMode === "user" ? "Back" : "Front"} Camera
+              <Button onClick={toggleCamera} disabled={cameras.length <= 1}>
+                Switch Camera
               </Button>
             </Col>
             <Col>
