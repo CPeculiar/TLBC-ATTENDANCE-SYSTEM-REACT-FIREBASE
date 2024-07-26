@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Button, Container, Alert, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Button, Container, Alert, Row, Col, Spinner } from 'react-bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import QrScanner from 'react-qr-scanner';
@@ -12,22 +12,23 @@ const UserAttendancePage = () => {
   const [cameras, setCameras] = useState([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const qrScannerRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
+
   // Get available cameras
   navigator.mediaDevices.enumerateDevices()
-  .then(devices => {
-    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-    setCameras(videoDevices);
-    if (videoDevices.length > 0) {
-      setCameraId(videoDevices[0].deviceId);
-    }
-  })
+      .then(devices => {
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        setCameras(videoDevices);
+        // Set the back camera as default
+        const backCamera = videoDevices.find(device => device.label.toLowerCase().includes('back'));
+        setCameraId(backCamera ? backCamera.deviceId : (videoDevices[0] ? videoDevices[0].deviceId : null));
+      })
       .catch(err => {
         console.error("Error enumerating devices:", err);
         setError("Unable to access camera. Please check your device settings.");
@@ -36,18 +37,49 @@ const UserAttendancePage = () => {
     return () => unsubscribe();
   }, []);
 
-  const checkLastAttendance = async (userId, churchId) => {
+  const recordAttendance = async (userId, churchId) => {
+    setLoading(true);
     try {
-    const db = getFirestore();
-    const attendanceRef = doc(db, 'attendance', `${userId}_${churchId}`);
-    const attendanceDoc = await getDoc(attendanceRef);
-    return attendanceDoc.exists();
-  } catch (err) {
-    console.error("Error checking last attendance:", err);
-    setError("Failed to check attendance history. Please try again.");
-    return false;
-  }
-};
+      const db = getFirestore();
+      const attendanceRef = doc(db, 'attendance', `${userId}_${churchId}`);
+      const attendanceDoc = await getDoc(attendanceRef);
+      
+      if (attendanceDoc.exists()) {
+        setMessage("You've already taken attendance for this service");
+        setLoading(false);
+        return false;
+      }
+
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.data();
+
+      const firstName = userData?.firstName || '';
+      const lastName = userData?.lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      await setDoc(attendanceRef, {
+        userId: userId,
+        email: user.email,
+        fullName: fullName,
+        attendanceTime: Timestamp.now(),
+        churchId: churchId
+      });
+
+      setMessage('Attendance recorded successfully!');
+      setLoading(false);
+      return true;
+    } catch (err) {
+      console.error('Error recording attendance:', err);
+      if (err.code === 'permission-denied') {
+        setError('Permission denied. Please contact your administrator.');
+      } else {
+        setError('Failed to record attendance. Please try again.');
+      }
+      setLoading(false);
+      return false;
+    }
+  };
 
   const handleScan = async (data) => {
     if (data) {
@@ -59,40 +91,14 @@ const UserAttendancePage = () => {
           return;
         }
 
-        const hasAttended = await checkLastAttendance(user.uid, scannedData.churchId);
-        if (hasAttended) {
-          setMessage("You've already taken attendance for this service");
-          setScanning(false);
-          return;
-        }
-
-        const db = getFirestore();
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        const userData = userDoc.data();
-
-        const firstName = userData?.firstName || '';
-        const lastName = userData?.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-
-        const attendanceRef = doc(db, 'attendance', `${user.uid}_${scannedData.churchId}`);
-        await setDoc(attendanceRef, {
-          userId: user.uid,
-          email: user.email,
-          fullName: fullName,
-          attendanceTime: Timestamp.now(),
-          churchId: scannedData.churchId
-        });
-        setScanned(true);
         setScanning(false);
-        setMessage('Attendance recorded successfully!');
-      } catch (err) {
-        console.error('Error recording attendance:', err);
-        if (err.code === 'permission-denied') {
-          setError('Permission denied. Please contact your administrator.');
-        } else {
-          setError('Failed to record attendance. Please try again.');
+        const success = await recordAttendance(user.uid, scannedData.churchId);
+        if (success) {
+          setScanned(true);
         }
+      } catch (err) {
+        console.error('Error processing QR code:', err);
+        setError('Failed to process QR code. Please try again.');
       }
     }
   };
@@ -117,10 +123,11 @@ const UserAttendancePage = () => {
     const nextIndex = (currentIndex + 1) % cameras.length;
     setCameraId(cameras[nextIndex].deviceId);
   };
-  
+
   if (!user) {
     return <Container>Please log in to take attendance.</Container>;
   }
+
 
   return (
     <Container>
@@ -131,7 +138,7 @@ const UserAttendancePage = () => {
       {scanning && (
         <div>
           <QrScanner
-            delay={300}
+            delay={180}
             onError={handleError}
             onScan={handleScan}
             style={{ width: '100%' }}
@@ -154,6 +161,7 @@ const UserAttendancePage = () => {
           </Row>
         </div>
       )}
+      {loading && <Spinner animation="border" role="status"><span className="sr-only">Loading...</span></Spinner>}
       {message && <Alert variant="info">{message}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
     </Container>
