@@ -1,0 +1,188 @@
+
+/* Add this to your App.css or any other CSS file */
+.navbar {
+  padding: 0.5rem 1rem;
+}
+
+.navbar-brand img {
+  max-height: 50px;
+  max-width: 50px;
+}
+
+.navbar-nav {
+  margin-left: auto;
+}
+
+.nav-link {
+  margin-right: 1rem;
+}
+
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    flex-grow: 0;
+  }
+}
+
+
+.navbar {
+  background-color: #343a40; /* Dark color for the navbar background */
+}
+
+.nav-link-custom {
+  color: #ffffff !important; /* White text color */
+  font-weight: bold; /* Bold text */
+}
+
+/* Optional: Add hover effect */
+.nav-link-custom:hover {
+  color: #f8f9fa !important; /* Slightly lighter color on hover */
+}
+
+/* Adjust navbar toggle (burger menu) color */
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='rgba(255, 255, 255, 1)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6h16M4 12h16m-7 6h7'/%3E%3C/svg%3E");
+}
+
+
+
+/*
+  HomePage
+*/
+
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: #f8f9fa;
+}
+
+.content-wrapper {
+  text-align: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.logo {
+  max-width: 200px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.welcome-text {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.hero-image {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.footer-text {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.btn-lg {
+  min-width: 120px;
+}
+.fade-in {
+  animation: fadeInEffect 1s ease-in-out forwards;
+}
+
+@keyframes fadeInEffect {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  Login
+*/
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  width: 100%;
+}
+
+.input-lg {
+  height: 50px;
+  font-size: 16px;
+}
+
+.link-primary {
+  font-weight: bold;
+}
+
+.login-btn-lg {
+  height: 50px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+
+
+/*
+    Dashboard
+*/
+.profile-icon img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .profile-container {
+    position: relative;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    float: right;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
