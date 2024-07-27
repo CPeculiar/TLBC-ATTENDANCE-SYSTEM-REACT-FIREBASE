@@ -3,7 +3,8 @@ import Select from "react-select";
 import { Country, State } from "country-state-city";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../Services/firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, db, storage } from "../Services/firebaseConfig";
 import { useAuth } from "../../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +14,7 @@ const RegistrationForm = () => {
   const [states, setStates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState({});
+  const [profilePicture, setProfilePicture] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,6 +28,8 @@ const RegistrationForm = () => {
     city: "",
     church: "",
     zone: "",
+    cell: "",
+    occupation: "",
   });
 
   const { setCurrentUser } = useAuth();
@@ -90,18 +94,36 @@ const RegistrationForm = () => {
       newErrors.zone = "Zone is required";
     }
 
+    if (!formData.cell.trim()) {
+      newErrors.cell = "Cell is required";
+    }
+
+    if (!formData.occupation.trim()) {
+      newErrors.occupation = "Occupation is required";
+    }
+
+    if (!profilePicture) {
+      newErrors.profilePicture = "Profile picture is required";
+    }
+
     setError(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     setError((prevErrors) => ({ ...prevErrors, [name]: "" }));
-
-    // Clear the error for this field as the user types
-    // setError({ ...error, [name]: "" });
   };
+
+  const handleProfilePictureChange = (e) => {
+    if (e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
+      setError((prevErrors) => ({ ...prevErrors, profilePicture: "" }));
+    }
+  };
+
 
   const handleCountryChange = (country) => {
     setSelectedCountry(country);
@@ -134,6 +156,13 @@ const RegistrationForm = () => {
         formData.email,
         formData.password
       );
+
+      let profilePictureUrl = "";
+      if (profilePicture) {
+        const storageRef = ref(storage, `profilePictures/${userCredential.user.uid}`);
+        await uploadBytes(storageRef, profilePicture);
+        profilePictureUrl = await getDownloadURL(storageRef);
+      }
       console.log("User created successfully:", userCredential.user.uid);
 
       // Prepare user data for Firestore
@@ -151,18 +180,18 @@ const RegistrationForm = () => {
         },
         church: formData.church,
         zone: formData.zone,
+        cell: formData.cell,
+        occupation: formData.occupation,
+        profilePictureUrl,
       };
       console.log("Storing user data in Firestore...");
 
       // Store additional user data in Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), userData);
-      console.log("User data stored successfully");
-
+      
       // Update the current user in the auth context
       setCurrentUser(userCredential.user);
       console.log("Registration successful, redirecting to dashboard...");
-
-      // Redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
       console.error("Error during registration:", error);
@@ -184,31 +213,31 @@ const RegistrationForm = () => {
 
   return (
     <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <div className="card shadow">
-            <div className="card-body">
-              <h2 className="card-title text-center mb-4" style={{color: 'blue'}}>Registration Form</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="form-control"
-                      placeholder="First Name"
-                      required
-                    />
+    <div className="row justify-content-center">
+      <div className="col-md-8">
+        <div className="card shadow">
+          <div className="card-body">
+            <h2 className="card-title text-center mb-4" style={{ color: '#007bff', fontWeight: 'bold' }}>Registration Form</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label htmlFor="firstName" className="form-label">First Name</label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="First Name"
+                    required
+                  />
                     {error.firstName && (
                       <span className="error">{error.firstName}</span>
                     )}
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="lastName">Last Name</label>
+                  <div className="col-md-6">
+                    <label htmlFor="lastName" className="form-label">Last Name</label>
                     <input
                       type="text"
                       className="form-control"
@@ -219,27 +248,43 @@ const RegistrationForm = () => {
                       placeholder="Last Name"
                       required
                     />
-                    {error.lastName && (
-                      <span className="error">{error.lastName}</span>
-                    )}
+                    {error.lastName && <span className="text-danger">{error.lastName}</span>}
                   </div>
                 </div>
-                <div className="mb-3">
-                  <label htmlFor="phone">Phone Number</label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    name="phone"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Phone Number"
-                    required
-                  />
-                  {error.phone && <span className="error">{error.phone}</span>}
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label htmlFor="phone" className="form-label">Phone Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      name="phone"
+                      id="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Phone Number"
+                      required
+                    />
+                    {error.phone && <span className="text-danger">{error.phone}</span>}
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="cell" className="form-label">Cell</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="cell"
+                      id="cell"
+                      value={formData.cell}
+                      onChange={handleChange}
+                      placeholder="Cell"
+                      required
+                    />
+                    {error.cell && <span className="text-danger">{error.cell}</span>}
+                  </div>
                 </div>
+
                 <div className="mb-3">
-                  <label htmlFor="email">Email Address</label>
+                  <label htmlFor="email" className="form-label">Email Address</label>
                   <input
                     type="email"
                     className="form-control"
@@ -250,10 +295,11 @@ const RegistrationForm = () => {
                     placeholder="Enter your email address"
                     required
                   />
-                  {error.email && <span className="error">{error.email}</span>}
+                  {error.email && <span className="text-danger">{error.email}</span>}
                 </div>
+
                 <div className="mb-3">
-                  <label htmlFor="password">Password</label>
+                  <label htmlFor="password" className="form-label">Password</label>
                   <input
                     type="password"
                     className="form-control"
@@ -264,14 +310,14 @@ const RegistrationForm = () => {
                     placeholder="Enter your Password"
                     required
                   />
-                  {error.password && (
-                    <span className="error">{error.password}</span>
-                  )}
+                  {error.password && <span className="text-danger">{error.password}</span>}
                 </div>
-                <div className="col-md-4 mb-3">
-                    <label htmlFor="gender">Gender</label>
+
+               <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label htmlFor="gender" className="form-label">Gender</label>
                     <select
-                      className="form-control form-select"
+                      className="form-select"
                       name="gender"
                       id="gender"
                       value={formData.gender}
@@ -282,29 +328,26 @@ const RegistrationForm = () => {
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
-                    {error.gender && (
-                      <span className="error">{error.gender}</span>
-                    )}
+                    {error.gender && <span className="text-danger">{error.gender}</span>}
                   </div>
-                <div className="mb-3">
-                  <label htmlFor="dateOfBirth">Select your date of Birth</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    name="dateOfBirth"
-                    id="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    placeholder="Date of Birth"
-                    required
-                  />
-                  {error.dateOfBirth && (
-                    <span className="error">{error.dateOfBirth}</span>
-                  )}
+                  <div className="col-md-6">
+                    <label htmlFor="dateOfBirth" className="form-label">Date of Birth</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      name="dateOfBirth"
+                      id="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      required
+                    />
+                    {error.dateOfBirth && <span className="text-danger">{error.dateOfBirth}</span>}
+                  </div>
                 </div>
-                <div className="row">
-                  <div className="col-md-4 mb-3 country">
-                    <label htmlFor="country">Country </label>
+
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <label htmlFor="country" className="form-label">Country</label>
                     <Select
                       id="country"
                       name="country"
@@ -313,22 +356,20 @@ const RegistrationForm = () => {
                       onChange={handleCountryChange}
                       placeholder="Select your Country"
                       isClearable
-                      className="react-select-container form-control"
+                      className="react-select-container"
                       classNamePrefix="react-select"
                       required
                     />
-                    {error.country && (
-                      <span className="error">{error.country}</span>
-                    )}
+                    {error.country && <span className="text-danger">{error.country}</span>}
                   </div>
-                  <div className="col-md-4 mb-3 state">
-                    <label htmlFor="state">State</label>
+                  <div className="col-md-4">
+                    <label htmlFor="state" className="form-label">State</label>
                     <Select
                       id="state"
                       name="state"
                       options={statesOptions}
                       value={selectedState}
-                      className="react-select-container form-control"
+                      className="react-select-container"
                       classNamePrefix="react-select"
                       onChange={handleStateChange}
                       placeholder="Select your state"
@@ -336,12 +377,10 @@ const RegistrationForm = () => {
                       isDisabled={!selectedCountry}
                       required
                     />
-                    {error.state && (
-                      <span className="error">{error.state}</span>
-                    )}
+                    {error.state && <span className="text-danger">{error.state}</span>}
                   </div>
-                  <div className="col-md-4 mb-3">
-                    <label htmlFor="city">City</label>
+                  <div className="col-md-4">
+                    <label htmlFor="city" className="form-label">City</label>
                     <input
                       type="text"
                       className="form-control"
@@ -352,53 +391,85 @@ const RegistrationForm = () => {
                       placeholder="Enter your City"
                       required
                     />
+                    {error.city && <span className="text-danger">{error.city}</span>}
                   </div>
                 </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label htmlFor="church" className="form-label">Church</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="church"
+                      id="church"
+                      value={formData.church}
+                      onChange={handleChange}
+                      placeholder="Church"
+                      required
+                    />
+                    {error.church && <span className="text-danger">{error.church}</span>}
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="zone" className="form-label">Zone</label>
+                    <select
+                      className="form-select"
+                      name="zone"
+                      id="zone"
+                      value={formData.zone}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="" disabled>Select your Church/Zone</option>
+                      <option value="Awka zone">Awka zone</option>
+                      <option value="Nnewi zone">Nnewi zone</option>
+                      <option value="Owerri zone">Owerri zone</option>
+                      <option value="Ekwulobia zone">Ekwulobia zone</option>
+                      <option value="TLBC Onitsha">TLBC Onitsha</option>
+                    </select>
+                    {error.zone && <span className="text-danger">{error.zone}</span>}
+                  </div>
+                </div>
+
                 <div className="mb-3">
-                  <label htmlFor="church">Church</label>
+                  <label htmlFor="occupation" className="form-label">Occupation</label>
                   <input
                     type="text"
                     className="form-control"
-                    name="church"
-                    id="church"
-                    value={formData.church}
+                    name="occupation"
+                    id="occupation"
+                    value={formData.occupation}
                     onChange={handleChange}
-                    placeholder="Church"
+                    placeholder="Enter your Occupation"
                     required
                   />
+                  {error.occupation && <span className="text-danger">{error.occupation}</span>}
                 </div>
+
                 <div className="mb-3">
-                  <label htmlFor="zone">Zone</label>
-                  <select
-                    type="text"
+                  <label htmlFor="profilePicture" className="form-label">Profile Picture</label>
+                  <input
+                    type="file"
                     className="form-control"
-                    name="zone"
-                    id="zone"
-                    value={formData.zone}
-                    onChange={handleChange}
-                    placeholder="Select Zone"
+                    name="profilePicture"
+                    id="profilePicture"
+                    onChange={handleProfilePictureChange}
+                    accept="image/*"
                     required
-                  >
-                    <option value="" selected disabled>
-                      Select your Church/Zone
-                    </option>
-                    <option value="Awka zone">Awka zone</option>
-                    <option value="Nnewi zone">Nnewi zone</option>
-                    <option value="Owerri zone">Owerri zone</option>
-                    <option value="Ekwulobia zone">Ekwulobia zone</option>
-                    <option value="TLBC Onitsha">TLBC Onitsha</option>
-                  </select>
-                  {error.zone && <span className="error">{error.zone}</span>}
+                  />
+                  {error.profilePicture && <span className="text-danger">{error.profilePicture}</span>}
                 </div>
+
                 <div className="d-grid mb-3">
                   <button
                     type="submit"
-                    className="btn btn-primary w-100" style={{height: '3em'}}
+                    className="btn btn-primary"
+                    style={{ height: '3em' }}
                     disabled={isLoading}
                   >
                     {isLoading ? "Registering..." : "Register"}
                   </button>
-                {error.form && <span className="error">{error.form}</span>}
+                  {error.form && <span className="text-danger mt-2">{error.form}</span>}
                 </div>
               </form>
             </div>
