@@ -181,8 +181,8 @@ const Devotional = () => {
   const pdfUrl = {LOLDJuly2024};
 
   return (
-    <div className="devotional-container">
-      <h2>Light of Life Devotional</h2>
+    <div className="devotional-container" style={{ padding: '1rem', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Light of Life Devotional</h2>
       <PDFViewer pdfUrl={LOLDJuly2024} />
     </div>
   );
