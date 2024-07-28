@@ -1,9 +1,147 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Form, Button, Table } from 'react-bootstrap';
+import { Container, Alert, Card, Row, Col, Form, Button, Table } from 'react-bootstrap';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+
+
+const AdminDashboard = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [churchId, setChurchId] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const db = getFirestore();
+
+  useEffect(() => {
+    fetchMostRecentAttendance();
+  }, []);
+
+  const fetchMostRecentAttendance = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const attendanceRef = collection(db, 'attendance');
+      const recentQuery = query(attendanceRef, orderBy('attendanceTime', 'desc'), limit(1));
+      const querySnapshot = await getDocs(recentQuery);
+      
+      if (!querySnapshot.empty) {
+        const mostRecentDoc = querySnapshot.docs[0];
+        const mostRecentData = mostRecentDoc.data();
+        setSelectedDate(mostRecentData.attendanceTime.toDate());
+        processAttendanceData([mostRecentData]);
+      } else {
+        setError('No attendance records found.');
+        setAttendanceData([]);
+        setChurchId('');
+      }
+    } catch (error) {
+      setError('Error fetching recent attendance data: ' + error.message);
+      setAttendanceData([]);
+      setChurchId('');
+    }
+    setLoading(false);
+  };
+
+  const fetchAttendanceData = async () => {
+    setLoading(true);
+    setError('');
+    
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    try {
+      const attendanceRef = collection(db, 'attendance');
+      const dateQuery = query(
+        attendanceRef,
+        where('attendanceTime', '>=', startOfDay),
+        where('attendanceTime', '<=', endOfDay)
+      );
+      
+      const querySnapshot = await getDocs(dateQuery);
+      const records = querySnapshot.docs.map(doc => doc.data());
+      
+      if (records.length > 0) {
+        processAttendanceData(records);
+      } else {
+        setError('No attendance record found for the selected date.');
+        setAttendanceData([]);
+        setChurchId('');
+      }
+    } catch (error) {
+      setError('Error fetching attendance data: ' + error.message);
+      setAttendanceData([]);
+      setChurchId('');
+    }
+    setLoading(false);
+  };
+
+  const processAttendanceData = (data) => {
+    setAttendanceData(data);
+    setChurchId(data[0]?.churchId || '');
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    fetchAttendanceData();
+  };
+
+  return (
+    <Container fluid>
+      <h2>View Attendance Record</h2>
+      <Form onSubmit={handleSubmit} className='mb-2'>
+        <Form.Group>
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+            dateFormat="yyyy-MM-dd"
+          />
+        </Form.Group>
+        <Button type="submit">Fetch Attendance</Button>
+      </Form>
+      {loading && <p>Loading...</p>}
+      {error && <Alert variant="danger">{error}</Alert>}
+      {attendanceData.length > 0 && (
+        <>
+          <h3>{churchId}</h3>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Attendance Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendanceData.map((record, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{record.fullName}</td>
+                  <td>{record.email}</td>
+                  <td>{record.attendanceTime.toDate().toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <p>Total attendance: {attendanceData.length}</p>
+        </>
+      )}
+    </Container>
+  );
+};
+
+
+
+
+
+
+
 
 // StatisticsCards Component
 const StatisticsCards = ({ totalAttendance, firstTimers, totalChildren, churchId }) => (
@@ -194,6 +332,8 @@ const BirthdayTable = ({ birthdays, birthdayFilter, setBirthdayFilter, selectedM
       fetchDashboardData();
       fetchAttendanceData();
       fetchBirthdays();
+      fetchMostRecentAttendance();
+
     }, []);
   
     const fetchDashboardData = async () => {
@@ -221,6 +361,34 @@ const BirthdayTable = ({ birthdays, birthdayFilter, setBirthdayFilter, selectedM
       if (records.length > 0) {
         setChurchId(records[0].churchId);
       }
+    };
+  
+    const fetchMostRecentAttendance = async () => {
+      setLoading(true);
+      setError('');
+      const db = getFirestore();
+      const attendanceRef = ref(db, 'attendance');
+      const recentQuery = query(attendanceRef, orderBy('date'), limitToLast(1));
+  
+      try {
+        const snapshot = await get(recentQuery);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const mostRecentDate = Object.keys(data)[0];
+          const mostRecentData = data[mostRecentDate];
+          setSelectedDate(new Date(mostRecentDate));
+          processAttendanceData(mostRecentData);
+        } else {
+          setError('No attendance records found.');
+          setAttendanceData([]);
+          setChurchId('');
+        }
+      } catch (error) {
+        setError('Error fetching recent attendance data: ' + error.message);
+        setAttendanceData([]);
+        setChurchId('');
+      }
+      setLoading(false);
     };
   
 
@@ -287,6 +455,51 @@ const BirthdayTable = ({ birthdays, birthdayFilter, setBirthdayFilter, selectedM
     //   ]);
     // };
 
+    const fetchAtttendanceData = async () => {
+      setLoading(true);
+      setError('');
+      const db = getDatabase();
+      const attendanceRef = ref(db, 'attendance');
+      const recentQuery = query(attendanceRef, orderByKey(), limitToLast(1));
+  
+      try {
+        const snapshot = await get(recentQuery);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const mostRecentDate = Object.keys(data)[0];
+          const mostRecentData = data[mostRecentDate];
+          setSelectedDate(new Date(mostRecentDate));
+          processAttendanceData(mostRecentData);
+        } else {
+          setError('No attendance record found for the selected date.');
+          setAtttendanceData([]);
+          setChuurchId('');
+        }
+      } catch (error) {
+        setError('Error fetching attendance data: ' + error.message);
+        setAtttendanceData([]);
+        setChuurchId('');
+      }
+      setLoading(false);
+    };
+  
+    const processAttendanceData = (data) => {
+      const attendanceArray = Object.values(data);
+      setAtttendanceData(attendanceArray);
+      setChuurchId(attendanceArray[0]?.churchId || '');
+    };
+  
+    const formatDate = (date) => {
+      return date.toISOString().split('T')[0];
+    };
+  
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      fetchAtttendanceData();
+    };
+  
+
+
   const fetchBirthdays = async () => {
     const usersRef = collection(db, 'users');
     const querySnapshot = await getDocs(usersRef);
@@ -347,6 +560,16 @@ const BirthdayTable = ({ birthdays, birthdayFilter, setBirthdayFilter, selectedM
         setAnalyticsPeriod={setAnalyticsPeriod}
         fetchAttendanceData={fetchAttendanceData}
       />
+<Container fluid>
+      <AdminDashboard />
+    </Container>
+
+
+
+
+
+
+
       <BirthdayTable 
         birthdays={birthdays}
         birthdayFilter={birthdayFilter}

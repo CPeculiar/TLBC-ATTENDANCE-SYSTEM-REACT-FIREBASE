@@ -1,70 +1,61 @@
-import React, { useState } from 'react';
-import { Container } from 'react-bootstrap';
-import { Menu, X, BarChart2, Users, FileText, Settings, HelpCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Container, Form, Table, Alert } from 'react-bootstrap';
+import { getDatabase, ref, get } from 'firebase/database';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import AdDashboardComponents from './AdDashboardComponents';
 import '../../App.css';
 
-const Sidebar = ({ isOpen, toggleSidebar, activeItem, setActiveItem }) => {
-  return (
-    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-header">
-        <img src="/api/placeholder/50/50" alt="Admin" className="rounded-circle" />
-        <div className="admin-info">
-          <p className="admin-name">John Doe</p>
-          <p className="admin-role">Admin</p>
-        </div>
-      </div>
-      <ul className="sidebar-menu">
-        <li className={activeItem === 'dashboard' ? 'active' : ''} onClick={() => { setActiveItem('dashboard'); toggleSidebar(); }}>
-          <BarChart2 size={20} />
-          <span>Dashboard</span>
-        </li>
-        <li className={activeItem === 'attendance' ? 'active' : ''} onClick={() => { setActiveItem('attendance'); toggleSidebar(); }}>
-          <Users size={20} />
-          <span>Attendance</span>
-        </li>
-        <li className={activeItem === 'reports' ? 'active' : ''} onClick={() => { setActiveItem('reports'); toggleSidebar(); }}>
-          <FileText size={20} />
-          <span>Reports</span>
-        </li>
-        <li className={activeItem === 'settings' ? 'active' : ''} onClick={() => { setActiveItem('settings'); toggleSidebar(); }}>
-          <Settings size={20} />
-          <span>Settings</span>
-        </li>
-        <li className={activeItem === 'help' ? 'active' : ''} onClick={() => { setActiveItem('help'); toggleSidebar(); }}>
-          <HelpCircle size={20} />
-          <span>Help</span>
-        </li>
-      </ul>
-    </div>
-  );
-};
-
 const AdminDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState('dashboard');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [churchId, setChurchId] = useState('');
+  const [error, setError] = useState('');
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+  useEffect(() => {
+    fetchAttendanceData(selectedDate);
+  }, [selectedDate]);
+
+  const fetchAttendanceData = async (date) => {
+    setError('');
+    const formattedDate = formatDate(date);
+    const db = getDatabase();
+    const attendanceRef = ref(db, `attendance/${formattedDate}`);
+
+    try {
+      const snapshot = await get(attendanceRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const attendanceArray = Object.values(data);
+        setAttendanceData(attendanceArray);
+        setChurchId(attendanceArray[0].churchId);
+      } else {
+        setError('No attendance record found for the selected date.');
+        setAttendanceData([]);
+        setChurchId('');
+      }
+    } catch (error) {
+      setError('Error fetching attendance data: ' + error.message);
+      setAttendanceData([]);
+      setChurchId('');
+    }
   };
 
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+
+  
   return (
-    <div className={`admin-dashboard ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} activeItem={activeItem} setActiveItem={setActiveItem} />
-      <div className="main-content">
-        <div className="top-bar">
-          <button className="toggle-sidebar" onClick={toggleSidebar}>
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          <h1>Admin Dashboard</h1>
-        </div>
+        
         <Container fluid>
-          {activeItem === 'dashboard' && <AdDashboardComponents />}
-          {/* Add other content components for different menu items */}
-        </Container>
-      </div>
-    </div>
+        <h1>Admin Dashboard</h1>
+           <AdDashboardComponents />
+           
+    </Container>
   );
 };
+
 
 export default AdminDashboard;

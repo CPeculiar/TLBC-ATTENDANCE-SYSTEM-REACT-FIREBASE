@@ -1,0 +1,266 @@
+/* Main Dashboard Layout */
+.dashboard {    
+    min-height: 100vh;
+    background-color: #f0f8ff;
+  }
+  
+  /* Navbar Styles */
+.dashboard-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .dashboard-title {
+    color: #333333 !important;
+    font-weight: bold;
+  }
+  
+  
+ /* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    margin-left: 250px;
+    margin-top: 56px; /* Height of navbar */
+    padding: 20px;
+    transition: margin-left 0.3s ease-in-out;
+  }
+  
+  
+  
+  /* Navbar Styles */
+  .navbar {
+        background-color: #ffffff !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .navbar-brand {
+        color: #0056b3 !important;
+        font-weight: bold;
+    }
+
+  
+ /* Responsive Image */
+ .hero-image-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .hero-image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  /* Notifications Dropdown */
+  /* .notifications-dropdown {
+    position: absolute;
+    top: 120px;
+    right: 10px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    z-index: 2000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+  } */
+
+  .notifications-dropdown {
+    position: absolute;
+    top: 60px; /* Adjust this based on your navbar height */
+    right: 20px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 250px; /* Adjust width as needed */
+  }
+  
+  .notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .notification-item:last-child {
+    border-bottom: none;
+  }
+  
+  /* Button Styles */
+  .btn-primary {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  
+  .btn-primary:hover {
+    background-color: #003d82;
+    border-color: #003d82;
+  }
+  
+  /* Form Styles */
+  .form-control:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.2rem rgba(0,86,179,0.25);
+  }
+  
+  /* Table Styles */
+  .table {
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .table thead th {
+    background-color: #0056b3;
+    color: #ffffff;
+  }
+  
+  /* Profile Container */
+  .profile-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Countdown Timer */
+  .countdown-timer {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0056b3;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  /* Card Styles */
+  .card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .card-header {
+    background-color: #0056b3;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  /* Modal Styles */
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    background-color: #0056b3;
+    color: #ffffff;
+  }
+  
+  .modal-title {
+    font-weight: bold;
+  }
+  
+  /* Profile Picture */
+  .profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0056b3;
+    margin-bottom: 20px;
+  }
+  
+  /* Support Form */
+  .support-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .support-container h2 {
+    color: #0056b3;
+    margin-bottom: 20px;
+  }
+  
+  /* Giving Form */
+  .giving-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .giving-container h2 {
+    color: #0056b3;
+    margin-bottom: 20px;
+  }
+  
+  /* Devotional Button */
+  .devotional-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+  }
+  
+  /* Attendance Button */
+  .attendance-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+  }
+
+  /* Attendance Container */
+.attendance-container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+  /* Responsive Design */
+@media (max-width: 767px) {
+ 
+  .notifications-dropdown {
+    top: 390px; /* Adjust for mobile screens */
+    right: 10px;
+    width: calc(100% - 20px);
+    z-index: 2000;
+  } 
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .main-content.sidebar-open {
+    margin-left: 250px;
+  }
+
+}
+
+  /* Responsive Design */
+@media (max-width: 768px) {
+  
+  .notifications-dropdown {
+    top: 390px; /* Adjust for mobile screens */
+    right: 10px;
+    width: calc(100% - 20px);
+    z-index: 2000;
+  }  
+  
+  .main-content.sidebar-open {
+    margin-left: 0;
+  }
+  
+}

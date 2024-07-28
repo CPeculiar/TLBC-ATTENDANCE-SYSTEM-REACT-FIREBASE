@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../Contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import Logo from '../../assets/Images/TLBC_LOGO_removebg.png';
 
 function Login() {
@@ -8,6 +10,11 @@ function Login() {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -46,14 +53,34 @@ function Login() {
                 />
               </div>
               <div className="mb-3">
+              <div className="input-group">
                 <input 
-                  type="password" 
+                  type={passwordVisible ? "text" : "password"}
                   className="form-control input-lg" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   placeholder="Password" 
                   required 
+                  style={{ paddingRight: '40px' }} // Add padding to prevent text overlap with the icon
                 />
+                <div className="input-group-append position-absolute end-0 top-50 translate-middle-y" style={{ zIndex: 10, paddingRight: '10px' }}>
+                <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={togglePasswordVisibility}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          padding: 0,
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={passwordVisible ? faEyeSlash : faEye}
+                          style={{ color: '#6c757d' }}
+                        />
+                      </button>
+              </div>
+              </div>
               </div>
               <div className="mb-3 d-flex justify-content-end">
                 <a href="/forgotpassword" className="link-primary font-weight-bold" style={{fontSize: '1.3em', textDecoration: 'none'}}>Forgot Password</a>

@@ -4,9 +4,7 @@ import Home from "./Components/Layouts/Home";
 import Login from "./Components/Auth/Login";
 import Register from "./Components/Auth/Register";
 import Dashboard from "./Components/Member/Dashboard";
-import MemberList from "./Components/Member/MemberList";
 import AttendanceMarker from "./Components/Attendance/AttendanceMarker";
-import ReportGenerator from "./Components/Admin/ReportGenerator";
 import PrivateRoute from "./Components/Auth/PrivateRoute";
 import QRCodeGenerator from "./Components/Attendance/QRCodeGenerator";
 import AdminDashboard from "./Components/Admin/AdminDashboard";
@@ -32,14 +30,6 @@ const App = () => {
         }
       />
       <Route
-        path="/members"
-        element={
-          <PrivateRoute>
-            <MemberList />
-          </PrivateRoute>
-        }
-      />
-      <Route
         path="/attendance"
         element={
           <PrivateRoute>
@@ -60,14 +50,6 @@ const App = () => {
         element={
           <PrivateRoute>
             <AdminDashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <PrivateRoute>
-            <ReportGenerator />
           </PrivateRoute>
         }
       />

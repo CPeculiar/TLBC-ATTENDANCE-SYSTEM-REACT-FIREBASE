@@ -7,7 +7,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../Services/firebaseConfig";
 import { useAuth } from "../../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
+ 
 const RegistrationForm = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
@@ -15,6 +18,7 @@ const RegistrationForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState({});
   const [profilePicture, setProfilePicture] = useState(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -30,6 +34,7 @@ const RegistrationForm = () => {
     zone: "",
     cell: "",
     occupation: "",
+    role: "user" // Default role
   });
 
   const { setCurrentUser } = useAuth();
@@ -139,6 +144,10 @@ const RegistrationForm = () => {
     setError({ ...error, state: "" });
   };
 
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError({});
@@ -149,9 +158,9 @@ const RegistrationForm = () => {
 
     try {
       console.log("Starting user registration...");
-
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(
+      
+       // Create user with email and password
+       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
@@ -159,11 +168,18 @@ const RegistrationForm = () => {
 
       let profilePictureUrl = "";
       if (profilePicture) {
-        const storageRef = ref(storage, `profilePictures/${userCredential.user.uid}`);
-        await uploadBytes(storageRef, profilePicture);
-        profilePictureUrl = await getDownloadURL(storageRef);
+        const fileExtension = profilePicture.name.split('.').pop();
+        const fileName = `${userCredential.user.uid}.${fileExtension}`;
+        const storageRef = ref(storage, `profilePictures/${fileName}`);
+        
+        // Upload the file
+        const snapshot = await uploadBytes(storageRef, profilePicture);
+        
+        // Get the download URL
+        profilePictureUrl = await getDownloadURL(snapshot.ref);
       }
       console.log("User created successfully:", userCredential.user.uid);
+
 
       // Prepare user data for Firestore
       const userData = {
@@ -183,6 +199,7 @@ const RegistrationForm = () => {
         cell: formData.cell,
         occupation: formData.occupation,
         profilePictureUrl,
+        role: formData.role, // Include the role in the user data
       };
       console.log("Storing user data in Firestore...");
 
@@ -300,8 +317,9 @@ const RegistrationForm = () => {
 
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>
+                  <div className="input-group">
                   <input
-                    type="password"
+                    type={passwordVisible ? "text" : "password"}
                     className="form-control"
                     name="password"
                     id="password"
@@ -309,7 +327,26 @@ const RegistrationForm = () => {
                     onChange={handleChange}
                     placeholder="Enter your Password"
                     required
+                    style={{ paddingRight: '40px' }} // Add padding to prevent text overlap with the icon
                   />
+                  <div className="input-group-append position-absolute end-0 top-50 translate-middle-y" style={{ zIndex: 10, paddingRight: '10px' }}>
+                  <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={togglePasswordVisibility}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          padding: 0,
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={passwordVisible ? faEyeSlash : faEye}
+                          style={{ color: '#6c757d' }}
+                        />
+                      </button>
+                    </div>
+                    </div>
                   {error.password && <span className="text-danger">{error.password}</span>}
                 </div>
 
