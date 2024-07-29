@@ -10,6 +10,7 @@ import QRCodeGenerator from "./Components/Attendance/QRCodeGenerator";
 import AdminDashboard from "./Components/Admin/AdminDashboard";
 import ForgotPassword from "./Components/Auth/ForgotPassword";
 import Navbar from "./Components/Layouts/Navbar";
+import Media from "./Components/Member/Media";
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/home" element={<Home />} />
       <Route path="/" element={<Home />} />
+      <Route path="/media" element={<Media />} />
       <Route
         path="/dashboard"
         element={
