@@ -637,7 +637,8 @@ const AttendanceReport = () => {
         record.cell
       ])
     });
-    doc.save('attendance-report.pdf');
+    // doc.save('attendance-report.pdf');
+   doc.save(`Attendance Report for ${selectedDate.toDateString()}.pdf`)
   };
 
   const currentAttendanceData = attendanceData.slice(
