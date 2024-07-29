@@ -41,7 +41,7 @@ const PDFViewer = ({ pdfUrl }) => {
 
   const handlePageNumberChange = (event) => {
     const newPageNumber = parseInt(event.target.value, 10);
-    if (newPageNumber > 0 && newPageNumber <= numPages) {
+    if (newPageNumber => 0 && newPageNumber <= numPages) {
       goToPage(newPageNumber);
     }
   };
@@ -56,7 +56,7 @@ const PDFViewer = ({ pdfUrl }) => {
         <Page pageNumber={pageNumber} width={window.innerWidth * 0.9} />
       </Document>
       <div className="page-controls" style={{ marginTop: "1rem" }}>
-        <FaRegFilePdf size={24} />
+        <FaRegFilePdf size={30} />
 
         <input
           type="number"

@@ -4,7 +4,7 @@ import { getDatabase, ref, get } from 'firebase/database';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import AdDashboardComponents from './AdDashboardComponents';
-import '../../App.css';
+// import '../../App.css';
 
 const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -50,7 +50,6 @@ const AdminDashboard = () => {
   return (
         
         <Container fluid>
-        <h1>Admin Dashboard</h1>
            <AdDashboardComponents />
            
     </Container>
