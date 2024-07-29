@@ -9,6 +9,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import '../Styles/AdminDashboard.css'
 
 
@@ -618,6 +620,26 @@ const AttendanceReport = () => {
     );
   };
 
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Attendance Report', 10, 10);
+    doc.text(`Date: ${selectedDate.toDateString()}`, 10, 20);
+    doc.text(`Total Attendance: ${attendanceData.length}`, 10, 30);
+    doc.autoTable({
+      startY: 40,
+      head: [['#', 'Full Name', 'Phone', 'Attendance Time', 'Cell']],
+      body: attendanceData.map((record, index) => [
+        index + 1,
+        record.fullName,
+        record.phone,
+        record.attendanceTime.toDate().toLocaleString(),
+        record.cell
+      ])
+    });
+    doc.save('attendance-report.pdf');
+  };
+
   const currentAttendanceData = attendanceData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -668,6 +690,9 @@ const AttendanceReport = () => {
             </tbody>
           </Table>
           {renderPagination()}
+          <div style={{textAlign: 'center'}}>
+          <Button onClick={downloadPDF} className='mt-3 ml-2' style={{width: '180px'}}>Download PDF</Button>   
+          </div>
         </>
       )}
     </Container>
