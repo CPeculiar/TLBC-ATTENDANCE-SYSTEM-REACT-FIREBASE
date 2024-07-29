@@ -579,7 +579,8 @@ const AttendanceReport = () => {
             id: attendanceDoc.id,
             ...attendanceData,
             fullName: attendanceData.fullName || `${userData?.firstName} ${userData?.lastName}`,
-            phone: userData?.phone
+            phone: userData?.phone,
+            cell: userData?.cell
           };
         }));
         setAttendanceData(attendanceRecords);
@@ -678,6 +679,7 @@ const AttendanceReport = () => {
                 <th>Full Name</th>
                 <th>Phone</th>
                 <th>Attendance Time</th>
+                <th>Cell</th>
               </tr>
             </thead>
             <tbody>
@@ -687,6 +689,7 @@ const AttendanceReport = () => {
                   <td>{record.fullName}</td>
                   <td>{record.phone}</td>
                   <td>{record.attendanceTime.toDate().toLocaleString()}</td>
+                  <td>{record.cell}</td>
                 </tr>
               ))}
             </tbody>
