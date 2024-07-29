@@ -11,6 +11,7 @@ import AdminDashboard from "./Components/Admin/AdminDashboard";
 import ForgotPassword from "./Components/Auth/ForgotPassword";
 import Navbar from "./Components/Layouts/Navbar";
 import Media from "./Components/Member/Media";
+import NotFound from "./Components/Layouts/NotFound";
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
       <Route path="/home" element={<Home />} />
       <Route path="/" element={<Home />} />
       <Route path="/media" element={<Media />} />
+      <Route path="*" element={<NotFound />} /> 
       <Route
         path="/dashboard"
         element={
