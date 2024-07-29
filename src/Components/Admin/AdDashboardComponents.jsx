@@ -207,35 +207,8 @@ const DashboardContent = () => {
     }
   };
 
-  
-  // const fetchAtttendanceData = async () => {
-  //   setLoading(true);
-  //   setError('');
 
-  //   const attendanceRef = ref(db, 'attendance');
-  //   const recentQuery = query(attendanceRef, orderBy(), limitToLast(1));
-
-  //   try {
-  //     const snapshot = await get(recentQuery);
-  //     if (snapshot.exists()) {
-  //       const data = snapshot.val();
-  //       const mostRecentDate = Object.keys(data)[0];
-  //       const mostRecentData = data[mostRecentDate];
-  //       setSelectedDate(new Date(mostRecentDate));
-  //       attendanceData(mostRecentData);
-  //     } else {
-  //       setError('No attendance record found for the selected date.');
-  //       setAttendanceData([]);
-  //       setChurchId('');
-  //     }
-  //   } catch (error) {
-  //     setError('Error fetching attendance data: ' + error.message);
-  //     setAttendanceData([]);
-  //     setChurchId('');
-  //   }
-  //   setLoading(false);
-  // };
-
+ 
   const fetchAttendanceData = async () => {
     setLoading(true);
     setError('');
@@ -883,61 +856,3 @@ const AttendanceReport = () => {
 
 
   
-  // Main Dashboard Component
-  // const DashboardComponents = () => {
-  //   const [totalAttendance, setTotalAttendance] = useState(0);
-  //   const [firstTimers, setFirstTimers] = useState(0);
-  //   const [totalChildren, setTotalChildren] = useState(0);
-  //   const [churchId, setChurchId] = useState('');
-  //   const [attendanceData, setAttendanceData] = useState([]);
-  //   const [birthdays, setBirthdays] = useState([]);
-  //   const [birthdayFilter, setBirthdayFilter] = useState('current');
-  //   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  //   const [startDate, setStartDate] = useState(new Date());
-  //   const [endDate, setEndDate] = useState(new Date());
-  //   const [analyticsPeriod, setAnalyticsPeriod] = useState('month');
-  //   const [loading, setLoading] = useState(true);
-  //   const [error, setError] = useState('');
-
-  //   const db = getFirestore();
-  
-  //   useEffect(() => {
-  //     fetchDashboardData();
-  //     fetchAttendanceData();
-  //     fetchBirthdays();
-  //     fetchMostRecentAttendance();
-
-  //   }, []);
-  
-  
-
-//   return (
-//     <div className="dashboard">
-//       <StatisticsCards 
-//         totalAttendance={totalAttendance}
-//         firstTimers={firstTimers}
-//         totalChildren={totalChildren}
-//         churchId={churchId}
-//       />
-//       <AttendanceChart 
-//         attendanceData={attendanceData}
-//         startDate={startDate}
-//         endDate={endDate}
-//         setStartDate={setStartDate}
-//         setEndDate={setEndDate}
-//         analyticsPeriod={analyticsPeriod}
-//         setAnalyticsPeriod={setAnalyticsPeriod}
-//         fetchAttendanceData={fetchAttendanceData}
-//       />
-// <Container fluid>
-//       <AdminDashboard />
-//     </Container>
-
-//       <BirthdayTable 
-//         birthdays={birthdays}
-//         birthdayFilter={birthdayFilter}
-//         setBirthdayFilter={setBirthdayFilter}
-//         selectedMonth={selectedMonth}
-//         setSelectedMonth={setSelectedMonth}
-//       />
-//     </div>
