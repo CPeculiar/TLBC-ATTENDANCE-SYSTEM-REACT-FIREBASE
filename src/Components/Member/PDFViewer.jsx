@@ -5,6 +5,7 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 import { useSwipeable } from "react-swipeable";
 import { FaRegFilePdf } from "react-icons/fa";
 
+
 // Set the worker source (required for react-pdf to work)
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
