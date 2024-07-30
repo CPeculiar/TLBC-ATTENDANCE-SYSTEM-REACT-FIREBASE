@@ -19,6 +19,7 @@ import { Country, State } from "country-state-city";
 import '../Styles/Giving.css'
 import '../../App.css'
 import emailjs from "emailjs-com";
+import Media from './Media';
 
 
 
@@ -908,6 +909,7 @@ const Dashboard = () => {
               <Nav.Link onClick={() => setActiveComponent('attendance')}>Attendance</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('devotional')}>Light of Life Devotional</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('giving')}>Givings</Nav.Link>
+              <Nav.Link onClick={() => setActiveComponent('messages')}>Messages</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('profile')}>Profile</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('support')}>Support</Nav.Link>
               <Nav.Link onClick={() => setShowLogoutModal(true)}>Logout</Nav.Link>
@@ -925,6 +927,7 @@ const Dashboard = () => {
         {activeComponent === 'attendance' && <Attendance navigate={navigate} />}
         {activeComponent === 'devotional' && <Devotional />}
         {activeComponent === 'giving' && <Giving />}
+        {activeComponent === 'messages' && <Media />}
         {activeComponent === 'profile' && <Profile />}
         {activeComponent === 'support' && <Support />}
       </main>

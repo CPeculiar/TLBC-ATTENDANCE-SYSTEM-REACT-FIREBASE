@@ -107,8 +107,8 @@ const Media = () => {
   
     return (
       <Container className="my-4">
-      <h1 className="mb-4" style={{ textAlign: "center" }}>Messages by Reverend Elochukwu Udegbunam</h1>
-        <p style={{ textAlign: "center" }}>Click to listen to any of the messages below by <br/>Reverend Elochukwu Udegbunam.</p>
+      <h1 className="mb-4" style={{ textAlign: "center" }}>Messages by <br/>Reverend Elochukwu Udegbunam</h1>
+        <p style={{ textAlign: "center" }}>Below are messages by <br/>Reverend Elochukwu Udegbunam. <br/> Click on any to listen to it</p>
 
         <Form className="mb-3" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
               <Form.Group>
