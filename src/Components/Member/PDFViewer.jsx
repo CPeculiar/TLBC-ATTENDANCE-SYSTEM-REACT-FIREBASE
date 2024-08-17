@@ -4,7 +4,15 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import { useSwipeable } from "react-swipeable";
 import { FaRegFilePdf } from "react-icons/fa";
-
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  ListGroup,
+  Card,
+} from "react-bootstrap";
 
 // Set the worker source (required for react-pdf to work)
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
@@ -42,7 +50,7 @@ const PDFViewer = ({ pdfUrl }) => {
 
   const handlePageNumberChange = (event) => {
     const newPageNumber = parseInt(event.target.value, 10);
-    if (newPageNumber => 0 && newPageNumber <= numPages) {
+    if ((newPageNumber) => 0 && newPageNumber <= numPages) {
       goToPage(newPageNumber);
     }
   };
@@ -53,8 +61,32 @@ const PDFViewer = ({ pdfUrl }) => {
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={console.error}
+        loading={<div>Loading PDF...</div>} // Add a loading indicator
       >
-        <Page pageNumber={pageNumber} width={window.innerWidth * 0.9} />
+        <Page
+          pageNumber={pageNumber}
+          width={window.innerWidth * 0.9}
+          renderTextLayer={false} // Disable text layer to speed up rendering
+          renderAnnotationLayer={false} // Disable annotation layer to speed up rendering
+        />
+        {pageNumber > 1 && (
+          <Page
+            pageNumber={pageNumber - 1}
+            width={window.innerWidth * 0.9}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            className="hidden" // Hide the preloaded page
+          />
+        )}
+        {pageNumber < numPages && (
+          <Page
+            pageNumber={pageNumber + 1}
+            width={window.innerWidth * 0.9}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            className="hidden" // Hide the preloaded page
+          />
+        )}
       </Document>
       <div className="page-controls" style={{ marginTop: "1rem" }}>
         <FaRegFilePdf size={30} />

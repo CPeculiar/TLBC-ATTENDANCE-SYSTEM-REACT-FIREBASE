@@ -15,32 +15,25 @@ const TelegramAudios = () => {
 
   const fetchAudios = async () => {
     try {
-      const updatesResponse = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`);
-      const audiosData = updatesResponse.data.result
+      const response = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`);
+      
+      // Filter out audio messages from the response
+      const audiosData = response.data.result
         .filter(update => update.channel_post && update.channel_post.audio)
-        .map(async (update) => {
-          const audio = update.channel_post.audio;
-          const filePathResponse = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${audio.file_id}`);
-          const filePath = filePathResponse.data.result.file_path;
-          const audioUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${filePath}`;
+        .map(update => ({
+          title: update.channel_post.audio.title || "Untitled",
+          performer: update.channel_post.audio.performer || "Unknown",
+          duration: update.channel_post.audio.duration,
+          fileId: update.channel_post.audio.file_id
+        }));
 
-          return {
-            title: audio.title || "Untitled",
-            performer: audio.performer || "Unknown",
-            duration: audio.duration,
-            fileUrl: audioUrl
-          };
-        });
-
-      const audiosWithUrls = await Promise.all(audiosData);
-
-      if (audiosWithUrls.length === 0) {
+      if (audiosData.length === 0) {
         setError("No audios found.");
       } else {
         setError("");
       }
 
-      setAudios(audiosWithUrls);
+      setAudios(audiosData);
     } catch (error) {
       console.error("Error fetching Telegram audios:", error);
       setError("Error fetching Telegram audios.");
@@ -69,7 +62,7 @@ const TelegramAudios = () => {
                   <div><strong>Performer:</strong> {audio.performer}</div>
                   <div><strong>Duration:</strong> {formatDuration(audio.duration)}</div>
                   <audio controls>
-                    <source src={audio.fileUrl} type="audio/mpeg" />
+                    <source src={`https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${audio.fileId}`} type="audio/mpeg" />
                     Your browser does not support the audio element.
                   </audio>
                 </ListGroup.Item>

@@ -11,6 +11,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PDFViewer from './PDFViewer';
 import LOLDJuly2024 from '../../assets/docs/LOLDJuly2024.pdf';
+import LOLDAugust2024 from '../../assets/docs/LOLD-August-2024.pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Link } from "react-router-dom";
@@ -179,12 +180,12 @@ const UpcomingBirthdays = () => {
 
 
 const Devotional = () => {
-  const pdfUrl = {LOLDJuly2024};
+  const pdfUrl = {LOLDAugust2024};
 
   return (
     <div className="devotional-container" style={{ padding: '1rem', maxWidth: '100%', boxSizing: 'border-box' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Light of Life Devotional</h2>
-      <PDFViewer pdfUrl={LOLDJuly2024} />
+      <PDFViewer pdfUrl={LOLDAugust2024} />
     </div>
   );
 };
