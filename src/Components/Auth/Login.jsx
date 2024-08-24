@@ -52,7 +52,7 @@ function Login() {
       backgroundSize: 'cover', 
       backgroundPosition: 'center', 
       position: 'relative',
-      padding: '3rem 1rem'
+      padding: '1rem'
     }}
   >
     <div 
@@ -68,10 +68,13 @@ function Login() {
       }} 
     />
 
-      <div className="row justify-content-center w-100" style={{ zIndex: 2 }}>
-        <div className="col-md-6">
-          <div className="login-card" style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)' }}>
-            <div className="card-body mt-5">
+      {/* <div className="row justify-content-center w-100" style={{ zIndex: 2 }}> */}
+      <div className="container" style={{ zIndex: 2, maxWidth: '100%' }}>
+        {/* <div className="col-md-6"> */}
+        <div className="row justify-content-center">
+        <div className="col-12 col-sm-10 col-md-8 col-lg-6">
+          <div className="login-card p-4" style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)' }}>
+            {/* <div className="card-body mt-5"> */}
 
             <form onSubmit={handleSubmit}>
             <h2 className="card-title text-primary fs-2 text-center mb-4">Login</h2>
@@ -116,25 +119,27 @@ function Login() {
               </div>
               </div>
               <div className="mb-3 d-flex justify-content-end">
-                <a href="/forgotpassword" className="link-primary font-weight-bold" style={{fontSize: '1.3em', textDecoration: 'none'}}>Forgot Password</a>
+                <a href="/forgotpassword" className="link-primary font-weight-bold" style={{fontSize: '1rem', textDecoration: 'none'}}>Forgot Password</a>
               </div>
-              <button type="submit" className="btn btn-primary login-btn-lg w-100 font-weight-bold" style={{fontSize: '1.4em', fontWeight: 'bolder'}}>Login</button>
+              <button type="submit" className="btn btn-primary w-100 py-2" style={{fontSize: '1.2rem', fontWeight: 'bold'}}>Login</button>
             </form>
           </div>
-        </div>
-
-        <div className="form-container">
+          <div className="text-container mt-3">
                     <Button
                       variant="link"
-                      className="mt-3 text-white fs-2 font-bold back-to-home"
+                      className="text-white fs-5 font-weight-bold back-to-home"
                       onClick={handleBackToHome}
                     >
                       Back to Home
                     </Button>
                   </div>
+        </div>
+
+        
       </div>
     </div>
   </div>
+
 
   </>
 );
