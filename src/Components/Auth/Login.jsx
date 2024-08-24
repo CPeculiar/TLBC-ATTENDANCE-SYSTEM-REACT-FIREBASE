@@ -64,25 +64,6 @@ function Login() {
           padding: "1rem",
         }}
       >
-        <div
-          // className="overlay"
-          // style={{
-          //   position: "absolute",
-          //   top: 0,
-          //   left: 0,
-          //   width: "100%",
-          //   height: "100%",
-          //   backgroundColor: "rgba(0, 0, 0, 0.5)",
-          //   zIndex: 1,
-          // }}
-        />
-
-        {/* <div className="row justify-content-center w-100" style={{ zIndex: 2 }}> */}
-        {/* <div className="container" style={{ zIndex: 2, maxWidth: '100%' }}> */}
-        {/* <div className="col-md-6"> */}
-        {/* <div className="row justify-content-center"> */}
-
-        {/* <div className=" align-items-center justify-content-center px-3 px-sm-5 px-lg-8"> */}
           <div
             className=" container-fluid w-100 mx-auto p-3 p-sm-4 bg-white rounded shadow-lg"
             style={{ maxWidth: "28rem" }}
@@ -98,12 +79,12 @@ function Login() {
                 <h2 className="h3 mb-2 text-dark font-weight-bold">
                   Welcome to TLBC
                 </h2>
-                <p className="text-muted">
+                <p className="text-muted mb-0">
                   Please login to access your account.
                 </p>
               </div>
 
-              <form className="mt-4 w-100 mx-auto" onSubmit={handleSubmit}>
+              <form className="w-100 mx-auto" onSubmit={handleSubmit}>
                 <div className="position-relative mb-3">
                   <input
                     type="email"
@@ -151,10 +132,8 @@ function Login() {
                       />
                     </button>
                   </div>
-
-                  {/* <div className="flex justify-content-end mb-4"> */}
                 </div>
-                <div className="d-flex justify-content-end align-items-end mb-4">
+                <div className="d-flex justify-content-end align-items-end">
                   <div className="text-muted small">
                     <button
                       type="button"
@@ -164,9 +143,9 @@ function Login() {
                       Forgot password?
                     </button>
                   </div>
-                </div>
+               </div>
 
-                <div className="d-grid mb-3">
+                <div className="d-grid mb-1">
                   <button
                     type="submit"
                     className="btn w-100 py-2"
@@ -187,29 +166,10 @@ function Login() {
                     {isLoading ? "Logging in..." : "Login"}
                   </button>
                 </div>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                New to our platform?{" "}
-                <a
-                  href="/register"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Create an account
-                </a>
-              </p>
               </form>
 
-            {/* <div className="text-container mt-3">
-              <Button
-                variant="link"
-                className="text-white fs-5 font-weight-bold back-to-home"
-                onClick={handleBackToHome}
-              >
-                Back to Home
-              </Button>
-            </div> */}
           </div>
         </div>
-      {/* </div> */}
     </>
   );
 }
