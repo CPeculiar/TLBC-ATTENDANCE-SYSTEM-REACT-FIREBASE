@@ -1,0 +1,45 @@
+.custom-navbar {
+    position: relative;
+    z-index: 1000;
+    background-color: #343a40;
+    padding: 1rem;
+  }
+  
+  .custom-navbar .nav-link {
+    color: #fff !important;
+    font-size: 1.1rem;
+  }
+  .custom-navbar .nav-link:hover {
+    color: #ffc107;
+  }
+  
+  .custom-navbar .navbar-brand {
+    display: flex;
+    align-items: center;
+    color: #ffc107;
+    font-weight: bold;
+  }
+
+  .navbar-brands {
+  color: #ffc107 !important;
+}
+
+  .custom-logo {
+    width: 50px;  /* Adjust as needed */
+  }
+  .custom-container {
+    max-width: 1000px;
+    max-height: 250px;
+  }
+
+.nav-links :hover {
+  color: #ffc107 !important;
+}
+  
+  
+  @media (max-width: 768px) {
+    .custom-navbar .nav-link {
+      text-align: center;
+      padding: 0.5rem 1rem;
+    }
+  }

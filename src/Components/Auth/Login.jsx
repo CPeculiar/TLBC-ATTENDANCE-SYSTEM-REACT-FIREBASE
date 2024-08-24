@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../Contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "react-bootstrap";
+import CustomNavbar from "../Layouts/CustomNavbar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import Logo from '../../assets/Images/TLBC_LOGO_removebg.png';
+import HeroSection from "../../assets/Images/TLBCSlider2.png";
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -11,6 +13,10 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const handleBackToHome = () => {
+    navigate('/');
+  };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -34,14 +40,41 @@ function Login() {
   }
 
   return (
-    <div className="login-container d-flex flex-column align-items-center justify-content-center min-vh-100" style={{marginTop: '-8em'}}>
-    <img src={Logo} alt="Logo" className="mb-4" style={{ width: '220px', height: 'auto' }} />
-    <div className="row justify-content-center w-100">
-      <div className="col-md-6">
-        <div className="login-card">
-          <div className="card-body">
-            <h2 className="card-title text-center mb-4">Login to your Profile</h2>
+
+    <>
+
+<CustomNavbar />
+
+    <div 
+   className="login d-flex flex-column align-items-center justify-content-center min-vh-100 text-white" 
+    style={{ 
+      backgroundImage: `url(${HeroSection})`, 
+      backgroundSize: 'cover', 
+      backgroundPosition: 'center', 
+      position: 'relative',
+      padding: '3rem 1rem'
+    }}
+  >
+    <div 
+      className="overlay" 
+      style={{ 
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        width: '100%', 
+        height: '100%', 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+        zIndex: 1 
+      }} 
+    />
+
+      <div className="row justify-content-center w-100" style={{ zIndex: 2 }}>
+        <div className="col-md-6">
+          <div className="login-card" style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)' }}>
+            <div className="card-body mt-5">
+
             <form onSubmit={handleSubmit}>
+            <h2 className="card-title text-primary fs-2 text-center mb-4">Login</h2>
               <div className="mb-3">
                 <input 
                   type="email" 
@@ -89,9 +122,21 @@ function Login() {
             </form>
           </div>
         </div>
+
+        <div className="form-container">
+                    <Button
+                      variant="link"
+                      className="mt-3 text-white fs-2 font-bold back-to-home"
+                      onClick={handleBackToHome}
+                    >
+                      Back to Home
+                    </Button>
+                  </div>
       </div>
     </div>
   </div>
+
+  </>
 );
 }
 

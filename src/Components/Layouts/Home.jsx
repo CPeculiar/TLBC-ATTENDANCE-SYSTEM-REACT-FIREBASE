@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Logo from '../../assets/Images/TLBC_LOGO_removebg.png'
-import HeroImage from '../../assets/Images/Herosection.jpg'
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Container, Row, Col } from "react-bootstrap";
+import {  Book } from "lucide-react";
+import CustomNavbar from "../Layouts/CustomNavbar";
+import "../Styles/Home.css";
+import HeroSection from "../../assets/Images/TLBCSlider2.png";
 import '../../App.css'
 
 function Home() {
 
   const [buttonsVisible, setButtonsVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -17,36 +21,121 @@ function Home() {
   }, []);
 
 
+  const handleRegisterClick = () => {
+    navigate('/register');
+  };
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+ 
+  const handleFirstTimersClick = () => {
+    navigate('/firsttimers');
+  };
+  
+
   return (
-    <div className="container-fluid d-flex flex-column align-items-center justify-content-center min-vh-100 p-3">
-      <div className="text-center mt-2">
-        <img src={Logo} alt="Logo" className="mb-2" style={{ width: '150px', height: 'auto' }} />
-        <h1 className="font-weight-bold">Welcome to our Data Management System</h1>
-      </div>
-      <div 
-        className="d-flex flex-column align-items-center justify-content-center w-100" 
-        style={{ 
-          backgroundImage: `url(${HeroImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(70%)',
-          height: '60vh',
-          width: '60vh',
-          position: 'relative',
-          margin: '20px auto',
-          borderRadius: '10px',
-          overflow: 'hidden'
+    <>
+<CustomNavbar />
+
+<div
+        className="hero-section position-relative text-white d-flex align-items-center justify-content-center"
+        style={{
+          backgroundImage: `url(${HeroSection})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          minHeight: "100vh",
+          padding: "2rem",
         }}
       >
-        <div className={`d-flex gap-3 ${buttonsVisible ? 'fade-in' : ''}`} style={{ zIndex: 1, position: 'absolute' }}>
-          <Link to="/login" className="btn btn-primary btn-lg">Login</Link>
-          <Link to="/register" className="btn btn-secondary btn-lg">Register</Link>
-        </div>
+
+<Container fluid >
+          <Row className="justify-content-center align-items-center h-100">
+            <Col xs={12} md={8} lg={6}>
+              <div className="hero-content text-center">
+                
+                      <div className="mb-4">
+                        <Book size={0} className="text-warning" />
+                      </div>
+                      <h1 className="display-4 fw-bold mb-3" style={{color: "#ffc107"}}>
+                        Welcome to
+                        <br />
+                        TLBC Data Center
+                      </h1>
+                      <p
+                        className="lead mb-4"
+                        style={{ color: "white", fontStyle: "italic" }}
+                      >
+                        This is for the members of TLBC International
+                        <br />
+                        Register with your correct information to be able to
+                        login to the portal.
+                      </p>
+                      
+                      <div
+                        className={`button-container ${
+                          buttonsVisible ? "fade-in" : ""
+                        }`}
+                        style={{ zIndex: 1, marginBottom: "2rem" }}
+                      >
+                        <Button
+                          variant="warning"
+                          size="lg"
+                          className="w-50 custom-button me-2 mb-2"
+                          style={{
+                            fontWeight: "bolder",
+                            fontSize: "1.5em",
+                            color: "black",
+                          }}
+                          onClick={handleLoginClick}
+                        >
+                          Login
+                        </Button>
+                        <Button
+                          variant="warning"
+                          size="lg"
+                          className="w-50 custom-button mb-2"
+                          style={{
+                            fontWeight: "bolder",
+                            fontSize: "1.5em",
+                            color: "black",
+                          }}
+                          onClick={handleRegisterClick}
+                        >
+                          Register
+                        </Button>
+                        <Button
+                          variant="warning"
+                          size="lg"
+                          className="w-50 custom-button mb-2"
+                          style={{
+                            fontWeight: "bolder",
+                            fontSize: "1.5em",
+                            color: "black",
+                          }}
+                          onClick={handleFirstTimersClick}
+                        >
+                          First-Timer
+                        </Button>
+                      </div>
+
+
+                
+              
+              </div>
+            </Col>
+          </Row>
+        </Container>
+
+
+        
+
       </div>
-      <p className="text-center mt-4" style={{ fontSize: '20px' }}>TLBC....calling men by the gospel into the Glory of God.</p>
-      <p className="text-center mt-4" style={{ fontSize: '20px' }}>Powered by the Welcoming Team.</p>
-    </div>
+
+      
+    </>
   );
-}
+};
 
 export default Home;

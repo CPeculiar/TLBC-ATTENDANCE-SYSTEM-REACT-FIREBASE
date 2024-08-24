@@ -3,25 +3,29 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./Components/Layouts/Home";
 import Login from "./Components/Auth/Login";
 import Register from "./Components/Auth/Register";
+import FirstTimersForm from "./Components/Auth/FirstTimersForm";
 import Dashboard from "./Components/Member/Dashboard";
 import AttendanceMarker from "./Components/Attendance/AttendanceMarker";
 import PrivateRoute from "./Components/Auth/PrivateRoute";
 import QRCodeGenerator from "./Components/Attendance/QRCodeGenerator";
 import AdminDashboard from "./Components/Admin/AdminDashboard";
 import ForgotPassword from "./Components/Auth/ForgotPassword";
-import Navbar from "./Components/Layouts/Navbar";
 import Media from "./Components/Member/Media";
 import NotFound from "./Components/Layouts/NotFound";
 import Telegram from "./Components/Member/Telegram";
+import Footer from "./Components/Layouts/Footer";
+
 
 const App = () => {
   return (
     <>
-    <Navbar />
+    
+
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/forgotpassword" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/firsttimers" element={<FirstTimersForm />} />
       <Route path="/home" element={<Home />} />
       <Route path="/" element={<Home />} />
       <Route path="/media" element={<Media />} />
@@ -60,6 +64,8 @@ const App = () => {
         }
       />
     </Routes>
+
+    <Footer />
     </>
   );
 };

@@ -10,7 +10,6 @@ import AttendanceImage from '../../assets/Images/attendance.jpeg'
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PDFViewer from './PDFViewer';
-import LOLDJuly2024 from '../../assets/docs/LOLDJuly2024.pdf';
 import LOLDAugust2024 from '../../assets/docs/LOLD-August-2024.pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -514,35 +513,54 @@ const Profile = () => {
     church: '',
     zone: '',
     cell: '',
-    occupation: ''
+    occupation: '',
+    invitedBy: '',
+    beAMember: '',
+    maritalStatus: '',
+    department: '',
+    dateOfComing: ''
   });
 
   useEffect(() => {
     if (currentUser) {
       const fetchUserDetails = async () => {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setUserDetails(docSnap.data());
-          setEditDetails({
-            phone: docSnap.data().phone,
-            city: docSnap.data().address.city,
-            state: docSnap.data().address.state,
-            country: docSnap.data().address.country,
-            church: docSnap.data().church,
-            zone: docSnap.data().zone,
-            cell: docSnap.data().cell,
-            occupation: docSnap.data().occupation
+        try {
+          const docRef = doc(db, "firsttimers", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+  
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserDetails(data);
+            setEditDetails({
+            phone: data.phone,
+            city: data.address.city,
+            state: data.address.state,
+            country: data.address.country,
+            church: data.church,
+            zone: data.zone,
+            cell: data.cell,
+            occupation: data.occupation,
+            invitedBy: data.invitedBy,
+            beAMember: data.beAMember,
+            maritalStatus: data.maritalStatus,
+            department: data.department,
+            dateOfComing: data.dateOfComing
           });
         } else {
-          console.log("No such document!");
-        }
-      };
-
-      fetchUserDetails();
+          console.log("No such document! User ID:", currentUser.uid);
+       // You might want to handle this case, perhaps by redirecting to a profile creation page
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
     }
-  }, [currentUser]);
+  };
+
+  fetchUserDetails();
+}
+}, [currentUser]);
+
+
+
 
   const handleEditChange = (e) => {
     setEditDetails({ ...editDetails, [e.target.name]: e.target.value });
@@ -550,7 +568,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const userRef = doc(db, "users", currentUser.uid);
+      const userRef = doc(db, "firsttimers", currentUser.uid);
       await updateDoc(userRef, {
         phone: editDetails.phone,
         address: {
@@ -561,30 +579,30 @@ const Profile = () => {
         church: editDetails.church,
         zone: editDetails.zone,
         cell: editDetails.cell,
-        occupation: editDetails.occupation
+        occupation: editDetails.occupation,
+        invitedBy: editDetails.invitedBy,
+        beAMember: editDetails.beAMember,
+        maritalStatus: editDetails.maritalStatus,
+        department: editDetails.department,
+        dateOfComing: editDetails.dateOfComing
       });
       setUserDetails(prevDetails => ({
         ...prevDetails,
-        phone: editDetails.phone,
+        ...editDetails,
         address: {
           city: editDetails.city,
           state: editDetails.state,
           country: editDetails.country
-        },
-        church: editDetails.church,
-        zone: editDetails.zone,
-        cell: editDetails.cell,
-        occupation: editDetails.occupation
+        }
       }));
       setEditMode(false);
-      toggleProfile();
     } catch (error) {
       console.error("Error updating document: ", error);
     }
   };
 
-    return (
-      <div className="profile-container">
+  return (
+    <div className="profile-container">
       <div className="profile-picture-container">
         {userDetails?.profilePictureUrl && (
           <img
@@ -601,50 +619,71 @@ const Profile = () => {
           />
         )}
       </div>
-        <h3 style={{textAlign: 'center', color: 'blue', fontWeight: 'bold'}}>Profile Details</h3>
-        {editMode ? (
-          <div>
-            <div className="form-group">
-              <label>Phone:</label>
-              <input type="text" name="phone" value={editDetails.phone} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>City:</label>
-              <input type="text" name="city" value={editDetails.city} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>State:</label>
-              <input type="text" name="state" value={editDetails.state} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>Country:</label>
-              <input type="text" name="country" value={editDetails.country} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>Church:</label>
-              <input type="text" name="church" value={editDetails.church} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>Zone:</label>
-              <input type="text" name="zone" value={editDetails.zone} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>Cell:</label>
-              <input type="text" name="cell" value={editDetails.cell} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <div className="form-group">
-              <label>Occupation:</label>
-              <input type="text" name="occupation" value={editDetails.occupation} onChange={handleEditChange} className="form-control"/>
-            </div>
-            <button onClick={handleSave} className="btn btn-success">Save</button>
+      <h3 style={{textAlign: 'center', color: 'blue', fontWeight: 'bold'}}>Profile Details</h3>
+      {editMode ? (
+        <div>
+          <div className="form-group">
+            <label>Phone:</label>
+            <input type="text" name="phone" value={editDetails.phone} onChange={handleEditChange} className="form-control"/>
           </div>
-        ) : (
-          <div>
+          <div className="form-group">
+            <label>City:</label>
+            <input type="text" name="city" value={editDetails.city} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>State:</label>
+            <input type="text" name="state" value={editDetails.state} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Country:</label>
+            <input type="text" name="country" value={editDetails.country} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Church:</label>
+            <input type="text" name="church" value={editDetails.church} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Zone:</label>
+            <input type="text" name="zone" value={editDetails.zone} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Cell:</label>
+            <input type="text" name="cell" value={editDetails.cell} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Occupation:</label>
+            <input type="text" name="occupation" value={editDetails.occupation} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Invited By:</label>
+            <input type="text" name="invitedBy" value={editDetails.invitedBy} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Be A Member:</label>
+            <input type="text" name="beAMember" value={editDetails.beAMember} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Marital Status:</label>
+            <input type="text" name="maritalStatus" value={editDetails.maritalStatus} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Department:</label>
+            <input type="text" name="department" value={editDetails.department} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <div className="form-group">
+            <label>Date of Coming:</label>
+            <input type="text" name="dateOfComing" value={editDetails.dateOfComing} onChange={handleEditChange} className="form-control"/>
+          </div>
+          <button onClick={handleSave} className="btn btn-success">Save</button>
+        </div>
+      ) : (
+        <div>
           <p><strong>First Name:</strong> {userDetails?.firstName}</p>
           <p><strong>Last Name:</strong> {userDetails?.lastName}</p>
           <p><strong>Email:</strong> {userDetails?.email}</p>
           <p><strong>Phone:</strong> {userDetails?.phone}</p>
           <p><strong>Date of Birth:</strong> {userDetails?.dateOfBirth}</p>
+          <p><strong>Gender:</strong> {userDetails?.gender}</p>
           <p><strong>City:</strong> {userDetails?.address.city}</p>
           <p><strong>State:</strong> {userDetails?.address.state}</p>
           <p><strong>Country:</strong> {userDetails?.address.country}</p>
@@ -652,209 +691,19 @@ const Profile = () => {
           <p><strong>Zone:</strong> {userDetails?.zone}</p>
           <p><strong>Cell:</strong> {userDetails?.cell}</p>
           <p><strong>Occupation:</strong> {userDetails?.occupation}</p>
+          <p><strong>Invited By:</strong> {userDetails?.invitedBy}</p>
+          <p><strong>Be A Member:</strong> {userDetails?.beAMember}</p>
+          <p><strong>Marital Status:</strong> {userDetails?.maritalStatus}</p>
+          <p><strong>Department:</strong> {userDetails?.department}</p>
+          <p><strong>Date of Coming:</strong> {userDetails?.dateOfComing}</p>
           <button onClick={() => setEditMode(true)} className="btn btn-primary d-block mx-auto mt-4 w-50">Edit</button>
         </div>
-        )}
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
+}
 
 
-
-
-
-
-
-
-// Support Component
-const Support = () => {
-    const [formData, setFormData] = useState({
-      name: '',
-      phone: '',
-      email: '',
-      church: '',
-      message: '',
-    });
-    const [formErrors, setFormErrors] = useState({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-  
-    const handleChange = (e) => {
-      setFormErrors({});
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-  
-    const validateForm = () => {
-      let errors = {};
-      if (!formData.name.trim()) errors.name = 'Name is required';
-      if (!formData.email.trim()) errors.email = 'Email is required';
-      if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
-      if (!formData.church.trim()) errors.church = 'Name of Church is required';
-      if (!formData.message.trim()) errors.message = 'Message is required';
-      if (!formData.phone.trim()) {
-        errors.phone = 'Phone number is required';
-      } else if (!/^\+?\d{10,15}$/.test(formData.phone)) {
-        errors.phone = 'Phone number is invalid';
-      }
-      return errors;
-    };
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      const errors = validateForm();
-      if (Object.keys(errors).length === 0) {
-        setIsSubmitting(true);
-        try {
-          const response = await emailjs.send(
-            'service_9y9qd0r',
-            'template_cywtduf',
-            {
-              to_email: 'chukwudipeculiar@gmail.com',
-              from_name: formData.name,
-              from_phone: formData.phone,
-              from_email: formData.email,
-              church: formData.church,
-              message: formData.message,
-            },
-            'G0uRp4jJwwELDgewX'
-          );
-  
-          if (response.status === 200) {
-            alert('Message sent successfully!');
-            setFormData({
-              name: '',
-              phone: '',
-              email: '',
-              church: '',
-              message: '',
-            });
-            setIsSuccess(true);
-          } else {
-            alert('Failed to send message. Please try again.');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('An error occurred. Please try again.');
-        } finally {
-          setIsSubmitting(false);
-        }
-      } else {
-        setFormErrors(errors);
-      }
-    };
-  
-    return (
-      <section className="contact-section section-padding" id="section_6">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-8 col-12 mx-auto">
-              <h4 className="text-center mb-4">Have any question? <br/> Send us a message</h4>
-  
-              <form
-                className="custom-form contact-form mb-5 mb-lg-0"
-                action="#"
-                method="post"
-                role="form"
-                onSubmit={handleSubmit}
-              >
-                <div className="contact-form-body">
-                  <div className="row">
-                    <div className="col-lg-6 col-md-6 col-12">
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        id="name"
-                        className="form-control"
-                        placeholder="Full name"
-                        required
-                      />
-                      {formErrors.name && (
-                        <p style={{ color: 'red' }}>{formErrors.name}</p>
-                      )}
-                    </div>
-  
-                    <div className="col-lg-6 col-md-6 col-12">
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        id="phone"
-                        className="form-control"
-                        placeholder="Phone number"
-                        required
-                      />
-                      {formErrors.phone && (
-                        <p style={{ color: 'red' }}>{formErrors.phone}</p>
-                      )}
-                    </div>
-  
-                    <div className="col-lg-6 col-md-6 col-12">
-                      <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        pattern="[^ @]*@[^ @]*"
-                        className="form-control"
-                        placeholder="Email address"
-                        required
-                      />
-                      {formErrors.email && (
-                        <p style={{ color: 'red' }}>{formErrors.email}</p>
-                      )}
-                    </div>
-  
-                    <div className="col-lg-6 col-md-6 col-12 mb-4">
-                      <input
-                        type="text"
-                        name="church"
-                        id="church"
-                        value={formData.church}
-                        onChange={handleChange}
-                        placeholder="Church"
-                        required
-                      />
-                      {formErrors.church && (
-                        <p style={{ color: 'red' }}>{formErrors.church}</p>
-                      )}
-                    </div>
-  
-                    <div className="col-12">
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        rows="3"
-                        className="form-control"
-                        id="message"
-                        placeholder="Message"
-                        required
-                      ></textarea>
-                      {formErrors.message && (
-                        <p style={{ color: 'red' }}>{formErrors.message}</p>
-                      )}
-                    </div>
-  
-                    <div className="col-lg-4 col-md-10 col-8 mx-auto">
-                      <button type="submit" className="form-control" disabled={isSubmitting}>
-                        {isSubmitting ? 'Sending...' : 'Send message'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  };
-
-  
 
 
 
@@ -906,8 +755,8 @@ const Dashboard = () => {
           <Navbar.Brand className="dashboard-title">Dashboard</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto" style={{fontWeight: 'bold'}}>
-              <Nav.Link onClick={() => setActiveComponent('attendance')}>Attendance</Nav.Link>
+            <Nav className="me-auto text-red" style={{fontWeight: 'bold', color: "black !important"}}>
+              <Nav.Link onClick={() => setActiveComponent('attendance')} className='nav-link' style={{color: "red !important"}}>Attendance</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('devotional')}>Light of Life Devotional</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('giving')}>Givings</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('messages')}>Messages</Nav.Link>

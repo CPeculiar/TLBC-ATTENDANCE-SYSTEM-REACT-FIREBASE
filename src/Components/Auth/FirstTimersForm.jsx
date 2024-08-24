@@ -3,7 +3,7 @@ import Select from "react-select";
 import CustomNavbar from "../Layouts/CustomNavbar";
 import { Country, State } from "country-state-city";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../Services/firebaseConfig";
 import { useAuth } from "../../Contexts/AuthContext";
@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
  
-const RegistrationForm = () => {
+const FirstTimersForm = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
   const [states, setStates] = useState([]);
@@ -21,7 +21,6 @@ const RegistrationForm = () => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -37,7 +36,13 @@ const RegistrationForm = () => {
     zone: "",
     cell: "",
     occupation: "",
-    role: "user" // Default role
+    role: "firstTimer", // Default role
+    invitedBy: "",
+    beAMember: "",
+    maritalStatus: "",
+    department: "",
+    dateOfComing: "",
+    visitDate: new Date(), // Assuming you're capturing the visit date
   });
 
   const { setCurrentUser } = useAuth();
@@ -80,39 +85,45 @@ const RegistrationForm = () => {
       newErrors.dateOfBirth = "Date of Birth is required";
     }
 
-    // Country validation
     if (!formData.country) {
       newErrors.country = "Country is required";
     }
 
-    // State validation
     if (!formData.state) {
-      newErrors.state = "State is required";
-    }
+        newErrors.state = "State is required";
+      }
 
-    if (!formData.city) {
-      newErrors.city = "City is required";
-    }
+      if (!formData.city) {
+        newErrors.city = "City is required";
+      }
 
     if (!formData.church) {
-      newErrors.church = "Church is required";
+        newErrors.church = "Church is required";
+      }
+
+    if (!formData.invitedBy) {
+      newErrors.invitedBy = "This field is required";
     }
 
-    if (!formData.zone) {
-      newErrors.zone = "Zone is required";
+    if (!formData.occupation) {
+        newErrors.occupation = "This field is required";
+      }
+
+    if (!formData.beAMember) {
+      newErrors.beAMember = "This field is required";
     }
 
-    if (!formData.cell.trim()) {
-      newErrors.cell = "Cell is required";
+    if (!formData.maritalStatus) {
+        newErrors.maritalStatus = "This field is required";
+      }
+
+    if (!formData.department) {
+      newErrors.department = "This field is required";
     }
 
-    if (!formData.occupation.trim()) {
-      newErrors.occupation = "Occupation is required";
-    }
-
-    if (!profilePicture) {
-      newErrors.profilePicture = "Profile picture is required";
-    }
+    if (!formData.dateOfComing) {
+        newErrors.dateOfComing = "This field is required";
+      }
 
     setError(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -121,9 +132,13 @@ const RegistrationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: name === 'email' ? value.toLowerCase() : value,
+    }));
     setError((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
+  
 
   const handleProfilePictureChange = (e) => {
     if (e.target.files[0]) {
@@ -161,6 +176,9 @@ const RegistrationForm = () => {
 
     try {
       console.log("Starting user registration...");
+
+      // Convert email to lowercase before registration
+    const lowerCaseEmail = formData.email.toLowerCase();
       
        // Create user with email and password
        const userCredential = await createUserWithEmailAndPassword(
@@ -201,14 +219,21 @@ const RegistrationForm = () => {
         zone: formData.zone,
         cell: formData.cell,
         occupation: formData.occupation,
+        invitedBy: formData.invitedBy,
+        beAMember: formData.beAMember,
+        maritalStatus: formData.maritalStatus,
+        department: formData.department,
+        dateOfComing: formData.dateOfComing,
         profilePictureUrl,
         role: formData.role, // Include the role in the user data
+        visitDate: formData.visitDate,
       };
       console.log("Storing user data in Firestore...");
 
-      // Store additional user data in Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), userData);
-      
+      // Store user data in Firestore under the 'FirstTimers' collection
+      //await addDoc(collection(db, "firsttimers"), userData);  Firestore generates a new document ID automatically
+      await setDoc(doc(db, "firsttimers", userCredential.user.uid), userData);
+
       // Update the current user in the auth context
       setCurrentUser(userCredential.user);
       console.log("Registration successful, redirecting to dashboard...");
@@ -232,17 +257,16 @@ const RegistrationForm = () => {
   }));
 
   return (
-
     <>
       <CustomNavbar />
-    
+
     <div className="container mt-5">
     <div className="row justify-content-center">
       <div className="col-md-8">
         <div className="card shadow">
           <div className="card-body">
             <h2 className="card-title text-center fs-2 mb-4" 
-            style={{ color: '#ffc107', fontWeight: 'bold' }}> Registration Form </h2>
+            style={{ color: '#ffc107', fontWeight: 'bold' }}>First Timers Form</h2>
             <form onSubmit={handleSubmit}>
               <div className="row mb-3">
                 <div className="col-md-6">
@@ -278,37 +302,7 @@ const RegistrationForm = () => {
                 </div>
 
                 <div className="row mb-3">
-                  <div className="col-md-6">
-                    <label htmlFor="phone" className="form-label">Phone Number</label>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      name="phone"
-                      id="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Phone Number"
-                      required
-                    />
-                    {error.phone && <span className="text-danger">{error.phone}</span>}
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="cell" className="form-label">Cell</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="cell"
-                      id="cell"
-                      value={formData.cell}
-                      onChange={handleChange}
-                      placeholder="Cell"
-                      required
-                    />
-                    {error.cell && <span className="text-danger">{error.cell}</span>}
-                  </div>
-                </div>
-
-                <div className="mb-3">
+                <div className="col-md-6">
                   <label htmlFor="email" className="form-label">Email Address</label>
                   <input
                     type="email"
@@ -322,8 +316,7 @@ const RegistrationForm = () => {
                   />
                   {error.email && <span className="text-danger">{error.email}</span>}
                 </div>
-
-                <div className="mb-3">
+                <div className="col-md-6">
                   <label htmlFor="password" className="form-label">Password</label>
                   <div className="input-group">
                   <input
@@ -356,6 +349,38 @@ const RegistrationForm = () => {
                     </div>
                     </div>
                   {error.password && <span className="text-danger">{error.password}</span>}
+                </div>
+                </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label htmlFor="phone" className="form-label">Phone Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      name="phone"
+                      id="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Phone Number"
+                      required
+                    />
+                    {error.phone && <span className="text-danger">{error.phone}</span>}
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="invitedBy" className="form-label">Who invited you?</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="invitedBy"
+                      id="invitedBy"
+                      value={formData.invitedBy}
+                      onChange={handleChange}
+                      placeholder="Who invited you?"
+                      required
+                    />
+                    {error.invitedBy && <span className="text-danger">{error.invitedBy}</span>}
+                  </div>
                 </div>
 
                <div className="row mb-3">
@@ -425,7 +450,7 @@ const RegistrationForm = () => {
                     {error.state && <span className="text-danger">{error.state}</span>}
                   </div>
                   <div className="col-md-4">
-                    <label htmlFor="city" className="form-label">City</label>
+                    <label htmlFor="city" className="form-label">Address (Street & city)</label>
                     <input
                       type="text"
                       className="form-control"
@@ -433,7 +458,7 @@ const RegistrationForm = () => {
                       id="city"
                       value={formData.city}
                       onChange={handleChange}
-                      placeholder="Enter your City"
+                      placeholder="Enter your Address"
                       required
                     />
                     {error.city && <span className="text-danger">{error.city}</span>}
@@ -441,7 +466,7 @@ const RegistrationForm = () => {
                 </div>
 
                 <div className="row mb-3">
-                  <div className="col-md-6">
+                  <div className="col-md-4">
                     <label htmlFor="church" className="form-label">Church</label>
                     <input
                       type="text"
@@ -455,7 +480,7 @@ const RegistrationForm = () => {
                     />
                     {error.church && <span className="text-danger">{error.church}</span>}
                   </div>
-                  <div className="col-md-6">
+                  <div className="col-md-4">
                     <label htmlFor="zone" className="form-label">Zone</label>
                     <select
                       className="form-select"
@@ -470,13 +495,94 @@ const RegistrationForm = () => {
                       <option value="Nnewi zone">Nnewi zone</option>
                       <option value="Owerri zone">Owerri zone</option>
                       <option value="Ekwulobia zone">Ekwulobia zone</option>
-                      <option value="TLBC Onitsha">TLBC Onitsha</option>
                     </select>
                     {error.zone && <span className="text-danger">{error.zone}</span>}
                   </div>
+                  <div className="col-md-4">
+                    <label htmlFor="cell" className="form-label">Cell</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="cell"
+                      id="cell"
+                      value={formData.cell}
+                      onChange={handleChange}
+                      placeholder="Enter your Cell"
+                      required
+                    />
+                    {error.cell && <span className="text-danger">{error.cell}</span>}
+                  </div>
+                </div>
+                
+
+
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <label htmlFor="beAMember" className="form-label">Will you like to be a member?</label>
+                    <select
+                      type="text"
+                      className="form-select"
+                      name="beAMember"
+                      id="beAMember"
+                      value={formData.beAMember}
+                      onChange={handleChange}
+                      placeholder="Select an option"
+                      required
+                    >
+                    <option value="" disabled>Select an option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                    {error.beAMember && <span className="text-danger">{error.beAMember}</span>}
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="department" className="form-label">Department of Interest</label>
+                    <select
+                      className="form-select"
+                      name="department"
+                      id="department"
+                      value={formData.department}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="" disabled>Select a department</option>
+                      <option value="Music Team">Music Team</option>
+                      <option value="Welcoming Team">Welcoming Team</option>
+                      <option value="Decorators">Decorators</option>
+                      <option value="Ushering">Ushering</option>
+                      <option value="Media">Media</option>
+                      <option value="Technicals">Technicals</option>
+                      <option value="Stage Management">Stage Management</option>
+                      <option value="Venue Management">Venue Management</option>
+                      <option value="Protocol">Protocol</option>
+                      <option value="Equipment">Equipment</option>
+                      <option value="Transport">Transport</option>
+                      <option value="Security">Security</option>
+                    </select>
+                    {error.department && <span className="text-danger">{error.department}</span>}
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="maritalStatus" className="form-label">Marital Status</label>
+                    <select
+                      type="text"
+                      className="form-control"
+                      name="maritalStatus"
+                      id="maritalStatus"
+                      value={formData.maritalStatus}
+                      onChange={handleChange}
+                      placeholder="Select an option"
+                      required
+                    >
+                     <option value="" disabled>Select an option</option>
+                     <option value="Single">Single</option>
+                     <option value="Married">Married</option>
+                     </select>
+                    {error.maritalStatus && <span className="text-danger">{error.maritalStatus}</span>}
+                  </div>
                 </div>
 
-                <div className="mb-3">
+                <div className="row mb-3">
+                <div className="col-md-6">
                   <label htmlFor="occupation" className="form-label">Occupation</label>
                   <input
                     type="text"
@@ -490,6 +596,23 @@ const RegistrationForm = () => {
                   />
                   {error.occupation && <span className="text-danger">{error.occupation}</span>}
                 </div>
+                <div className="col-md-6">
+                    <label htmlFor="dateOfComing" className="form-label">Date of coming</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      name="dateOfComing"
+                      id="dateOfComing"
+                      value={formData.dateOfComing}
+                      onChange={handleChange}
+                      required
+                    />
+                    {error.dateOfComing && <span className="text-danger">{error.dateOfComing}</span>}
+                  </div>
+                </div>
+
+
+
 
                 <div className="mb-3">
                   <label htmlFor="profilePicture" className="form-label">Profile Picture</label>
@@ -500,13 +623,12 @@ const RegistrationForm = () => {
                     id="profilePicture"
                     onChange={handleProfilePictureChange}
                     accept="image/*"
-                    required
+                    
                   />
-                  {error.profilePicture && <span className="text-danger">{error.profilePicture}</span>}
+                  {/* {error.profilePicture && <span className="text-danger">{error.profilePicture}</span>} */}
                 </div>
 
                 <div className="d-grid mb-3">
-
                   <button
                     type="submit"
                     className="btn btn"
@@ -532,4 +654,4 @@ const RegistrationForm = () => {
   );
 };
 
-export default RegistrationForm;
+export default FirstTimersForm;

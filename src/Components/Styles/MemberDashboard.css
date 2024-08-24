@@ -19,6 +19,9 @@
     font-weight: bold;
   }
   
+  .nav-link {
+    color: black !important;
+  }
   
  /* Main Content Area */
 .main-content {
