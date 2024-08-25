@@ -3,10 +3,12 @@ import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../Services/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import CustomNavbar from '../Layouts/CustomNavbar';
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -48,12 +50,16 @@ function ForgotPassword() {
 //   };
 
     return (
+      <>
+  <CustomNavbar />
+
         <div className="container mt-5">
           <div className="row justify-content-center">
             <div className="col-md-6">
               <div className="card">
                 <div className="card-body">
-                  <h2 className="card-title text-center mb-4">Forgot Password</h2>
+                  <h2 className="card-title text-center fs-4 mb-2">Forgot Password?</h2>
+                  <p className="text-center fs-5 font-bolder mb-2">Enter your email address below</p>
                   {message ? (
                     <p className="text-success">{message}</p>
                   ) : (
@@ -64,11 +70,24 @@ function ForgotPassword() {
                           className="form-control"
                           value={email} 
                           onChange={(e) => setEmail(e.target.value)} 
-                          placeholder="Email" 
+                          placeholder="Enter your email" 
                           required 
                         />
                       </div>
-                      <button type="submit" className="btn btn-primary w-100">Send Reset Email</button>
+                      <button type="submit" className="btn btn- w-100"
+                      style={{
+                      height: "3em",
+                      backgroundColor: isHovered ? "#cc8a00" : "#ffc107",
+                      color: isHovered ? "white" : "black",
+                      fontSize: "1.1em",
+                      fontWeight: "bolder",
+                      border: "none",
+                      transition: "background-color 0.3s",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                      >Send Reset Email</button>
                     </form>
                   )}
                 </div>
@@ -76,6 +95,8 @@ function ForgotPassword() {
             </div>
           </div>
         </div>
+
+        </>
       );
     }
 

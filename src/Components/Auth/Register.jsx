@@ -470,7 +470,6 @@ const RegistrationForm = () => {
                       <option value="Nnewi zone">Nnewi zone</option>
                       <option value="Owerri zone">Owerri zone</option>
                       <option value="Ekwulobia zone">Ekwulobia zone</option>
-                      <option value="TLBC Onitsha">TLBC Onitsha</option>
                     </select>
                     {error.zone && <span className="text-danger">{error.zone}</span>}
                   </div>

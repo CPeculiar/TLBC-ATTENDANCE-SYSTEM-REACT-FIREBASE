@@ -499,6 +499,7 @@ const Giving = () => {
 
 
 
+
 // Profile Component
 const Profile = () => {
   const { currentUser } = useAuth();
@@ -515,52 +516,60 @@ const Profile = () => {
     cell: '',
     occupation: '',
     invitedBy: '',
-    beAMember: '',
     maritalStatus: '',
     department: '',
     dateOfComing: ''
   });
 
+  const [collection, setCollection] = useState("");
+  const db = getFirestore();
+
   useEffect(() => {
     if (currentUser) {
-      const fetchUserDetails = async () => {
-        try {
-          const docRef = doc(db, "firsttimers", currentUser.uid);
-          const docSnap = await getDoc(docRef);
-  
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setUserDetails(data);
-            setEditDetails({
-            phone: data.phone,
-            city: data.address.city,
-            state: data.address.state,
-            country: data.address.country,
-            church: data.church,
-            zone: data.zone,
-            cell: data.cell,
-            occupation: data.occupation,
-            invitedBy: data.invitedBy,
-            beAMember: data.beAMember,
-            maritalStatus: data.maritalStatus,
-            department: data.department,
-            dateOfComing: data.dateOfComing
-          });
+      fetchUserDetails();
+    }
+  }, [currentUser]);
+
+  const fetchUserDetails = async () => {
+    try {
+      // Try to fetch from the "users" collection first
+      let docRef = doc(db, "users", currentUser.uid);
+      let docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        // If not found in "users", check in "firsttimers"
+        docRef = doc(db, "firsttimers", currentUser.uid);
+        docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setCollection("firsttimers");
         } else {
           console.log("No such document! User ID:", currentUser.uid);
-       // You might want to handle this case, perhaps by redirecting to a profile creation page
+          return;
+        }
+      } else {
+        setCollection("users");
       }
+
+      const data = docSnap.data();
+      setUserDetails(data);
+      setEditDetails({
+        phone: data.phone || '',
+        city: data.address?.city || '',
+        state: data.address?.state || '',
+        country: data.address?.country || '',
+        church: data.church || '',
+        zone: data.zone || '',
+        cell: data.cell || '',
+        occupation: data.occupation || '',
+        invitedBy: data.invitedBy || '',
+        maritalStatus: data.maritalStatus || '',
+        department: data.department || '',
+        dateOfComing: data.dateOfComing || ''
+      });
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
   };
-
-  fetchUserDetails();
-}
-}, [currentUser]);
-
-
-
 
   const handleEditChange = (e) => {
     setEditDetails({ ...editDetails, [e.target.name]: e.target.value });
@@ -568,8 +577,8 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const userRef = doc(db, "firsttimers", currentUser.uid);
-      await updateDoc(userRef, {
+      const userRef = doc(db, collection, currentUser.uid);
+      const updateData = {
         phone: editDetails.phone,
         address: {
           city: editDetails.city,
@@ -580,26 +589,54 @@ const Profile = () => {
         zone: editDetails.zone,
         cell: editDetails.cell,
         occupation: editDetails.occupation,
-        invitedBy: editDetails.invitedBy,
-        beAMember: editDetails.beAMember,
-        maritalStatus: editDetails.maritalStatus,
-        department: editDetails.department,
-        dateOfComing: editDetails.dateOfComing
-      });
+      };
+      
+      if (collection === "firsttimers") {
+        Object.assign(updateData, {
+          invitedBy: editDetails.invitedBy,
+          maritalStatus: editDetails.maritalStatus,
+          department: editDetails.department,
+          dateOfComing: editDetails.dateOfComing
+        });
+      }
+      
+      await updateDoc(userRef, updateData);
       setUserDetails(prevDetails => ({
         ...prevDetails,
-        ...editDetails,
-        address: {
-          city: editDetails.city,
-          state: editDetails.state,
-          country: editDetails.country
-        }
+        ...updateData,
+        address: updateData.address
       }));
       setEditMode(false);
     } catch (error) {
       console.error("Error updating document: ", error);
     }
   };
+
+  const renderFirstTimerFields = () => {
+    if (collection !== "firsttimers") return null;
+    
+    return (
+      <>
+        <div className="form-group">
+          <label>Invited By:</label>
+          <input type="text" name="invitedBy" value={editDetails.invitedBy} onChange={handleEditChange} className="form-control"/>
+        </div>
+        <div className="form-group">
+          <label>Marital Status:</label>
+          <input type="text" name="maritalStatus" value={editDetails.maritalStatus} onChange={handleEditChange} className="form-control"/>
+        </div>
+        <div className="form-group">
+          <label>Department:</label>
+          <input type="text" name="department" value={editDetails.department} onChange={handleEditChange} className="form-control"/>
+        </div>
+        <div className="form-group">
+          <label>Date of Coming:</label>
+          <input type="text" name="dateOfComing" value={editDetails.dateOfComing} onChange={handleEditChange} className="form-control"/>
+        </div>
+      </>
+    );
+  };
+
 
   return (
     <div className="profile-container">
@@ -654,26 +691,7 @@ const Profile = () => {
             <label>Occupation:</label>
             <input type="text" name="occupation" value={editDetails.occupation} onChange={handleEditChange} className="form-control"/>
           </div>
-          <div className="form-group">
-            <label>Invited By:</label>
-            <input type="text" name="invitedBy" value={editDetails.invitedBy} onChange={handleEditChange} className="form-control"/>
-          </div>
-          <div className="form-group">
-            <label>Be A Member:</label>
-            <input type="text" name="beAMember" value={editDetails.beAMember} onChange={handleEditChange} className="form-control"/>
-          </div>
-          <div className="form-group">
-            <label>Marital Status:</label>
-            <input type="text" name="maritalStatus" value={editDetails.maritalStatus} onChange={handleEditChange} className="form-control"/>
-          </div>
-          <div className="form-group">
-            <label>Department:</label>
-            <input type="text" name="department" value={editDetails.department} onChange={handleEditChange} className="form-control"/>
-          </div>
-          <div className="form-group">
-            <label>Date of Coming:</label>
-            <input type="text" name="dateOfComing" value={editDetails.dateOfComing} onChange={handleEditChange} className="form-control"/>
-          </div>
+          {renderFirstTimerFields()}
           <button onClick={handleSave} className="btn btn-success">Save</button>
         </div>
       ) : (
@@ -684,24 +702,28 @@ const Profile = () => {
           <p><strong>Phone:</strong> {userDetails?.phone}</p>
           <p><strong>Date of Birth:</strong> {userDetails?.dateOfBirth}</p>
           <p><strong>Gender:</strong> {userDetails?.gender}</p>
-          <p><strong>City:</strong> {userDetails?.address.city}</p>
-          <p><strong>State:</strong> {userDetails?.address.state}</p>
-          <p><strong>Country:</strong> {userDetails?.address.country}</p>
+          <p><strong>City:</strong> {userDetails?.address?.city}</p>
+          <p><strong>State:</strong> {userDetails?.address?.state}</p>
+          <p><strong>Country:</strong> {userDetails?.address?.country}</p>
           <p><strong>Church:</strong> {userDetails?.church}</p>
           <p><strong>Zone:</strong> {userDetails?.zone}</p>
           <p><strong>Cell:</strong> {userDetails?.cell}</p>
           <p><strong>Occupation:</strong> {userDetails?.occupation}</p>
-          <p><strong>Invited By:</strong> {userDetails?.invitedBy}</p>
-          <p><strong>Be A Member:</strong> {userDetails?.beAMember}</p>
-          <p><strong>Marital Status:</strong> {userDetails?.maritalStatus}</p>
-          <p><strong>Department:</strong> {userDetails?.department}</p>
-          <p><strong>Date of Coming:</strong> {userDetails?.dateOfComing}</p>
+          {collection === "firsttimers" && (
+            <>
+              <p><strong>Invited By:</strong> {userDetails?.invitedBy}</p>
+              <p><strong>Marital Status:</strong> {userDetails?.maritalStatus}</p>
+              <p><strong>Department:</strong> {userDetails?.department}</p>
+              <p><strong>Date of Coming:</strong> {userDetails?.dateOfComing}</p>
+            </>
+          )}
           <button onClick={() => setEditMode(true)} className="btn btn-primary d-block mx-auto mt-4 w-50">Edit</button>
         </div>
       )}
     </div>
   );
 }
+
 
 
 
@@ -759,9 +781,9 @@ const Dashboard = () => {
               <Nav.Link onClick={() => setActiveComponent('attendance')} className='nav-link' style={{color: "red !important"}}>Attendance</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('devotional')}>Light of Life Devotional</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('giving')}>Givings</Nav.Link>
-              <Nav.Link onClick={() => setActiveComponent('messages')}>Messages</Nav.Link>
+              {/* <Nav.Link onClick={() => setActiveComponent('messages')}>Messages</Nav.Link> */}
               <Nav.Link onClick={() => setActiveComponent('profile')}>Profile</Nav.Link>
-              <Nav.Link onClick={() => setActiveComponent('support')}>Support</Nav.Link>
+              {/* <Nav.Link onClick={() => setActiveComponent('support')}>Support</Nav.Link> */}
               <Nav.Link onClick={() => setShowLogoutModal(true)}>Logout</Nav.Link>
             </Nav>
             <Nav>
@@ -777,9 +799,9 @@ const Dashboard = () => {
         {activeComponent === 'attendance' && <Attendance navigate={navigate} />}
         {activeComponent === 'devotional' && <Devotional />}
         {activeComponent === 'giving' && <Giving />}
-        {activeComponent === 'messages' && <Media />}
+        {/* {activeComponent === 'messages' && <Media />} */}
         {activeComponent === 'profile' && <Profile />}
-        {activeComponent === 'support' && <Support />}
+        {/* {activeComponent === 'support' && <Support />} */}
       </main>
 
       <Modal show={showLogoutModal} onHide={() => setShowLogoutModal(false)}>

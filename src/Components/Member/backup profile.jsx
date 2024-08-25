@@ -1,4 +1,7 @@
 // Profile Component
+import { useNavigate } from 'react-router-dom';
+
+
 const Profile = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -16,9 +19,7 @@ const Profile = () => {
     });
   
     const [collection, setCollection] = useState("");
-    console.log (currentUser);
-  
-  
+     
     useEffect(() => {
       if (currentUser) {
         const fetchUserDetails = async () => {

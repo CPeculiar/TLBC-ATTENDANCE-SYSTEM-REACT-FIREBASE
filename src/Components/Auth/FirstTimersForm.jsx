@@ -231,7 +231,6 @@ const FirstTimersForm = () => {
       console.log("Storing user data in Firestore...");
 
       // Store user data in Firestore under the 'FirstTimers' collection
-      //await addDoc(collection(db, "firsttimers"), userData);  Firestore generates a new document ID automatically
       await setDoc(doc(db, "firsttimers", userCredential.user.uid), userData);
 
       // Update the current user in the auth context
@@ -490,7 +489,7 @@ const FirstTimersForm = () => {
                       onChange={handleChange}
                       required
                     >
-                      <option value="" disabled>Select your Church/Zone</option>
+                      <option value="" disabled>Select your zone</option>
                       <option value="Awka zone">Awka zone</option>
                       <option value="Nnewi zone">Nnewi zone</option>
                       <option value="Owerri zone">Owerri zone</option>
@@ -535,6 +534,8 @@ const FirstTimersForm = () => {
                     </select>
                     {error.beAMember && <span className="text-danger">{error.beAMember}</span>}
                   </div>
+
+                  {formData.beAMember === 'Yes' && (
                   <div className="col-md-4">
                     <label htmlFor="department" className="form-label">Department of Interest</label>
                     <select
@@ -561,6 +562,7 @@ const FirstTimersForm = () => {
                     </select>
                     {error.department && <span className="text-danger">{error.department}</span>}
                   </div>
+                  )}
                   <div className="col-md-4">
                     <label htmlFor="maritalStatus" className="form-label">Marital Status</label>
                     <select
