@@ -20,6 +20,7 @@ import '../Styles/Giving.css'
 import '../../App.css'
 import emailjs from "emailjs-com";
 import Media from './Media';
+import Footer from '../Layouts/Footer';
 
 
 
@@ -51,6 +52,10 @@ const Attendance = ({ navigate }) => {
       <h3 className="text-center mt-3">{formatTime(countdown)}</h3>
       <Button onClick={() => navigate('/attendance')} className="d-block mx-auto mt-3 w-50">
         Take attendance for Today's service
+      </Button>
+      <Button onClick={() => navigate('/tlbc')} className="d-block mx-auto mt-3 w-50"
+       style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder",}}>
+        TLBC'24 ATTENDANCE
       </Button>
       <UpcomingBirthdays />
     </div>
@@ -832,6 +837,9 @@ const Dashboard = () => {
           )}
         </div>
       )}
+
+      <Footer />
+      
     </div>
   );
 };

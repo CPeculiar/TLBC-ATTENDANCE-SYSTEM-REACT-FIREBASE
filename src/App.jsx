@@ -14,6 +14,8 @@ import Media from "./Components/Member/Media";
 import NotFound from "./Components/Layouts/NotFound";
 import Telegram from "./Components/Member/Telegram";
 import Footer from "./Components/Layouts/Footer";
+import TLBCAttendancePage from "./Components/TLBC-Attendance/AttendancePage";
+import TLBCQRCodeGenerator from "./Components/TLBC-Attendance/TLBCQRCodeGenerator";
 
 
 const App = () => {
@@ -63,9 +65,25 @@ const App = () => {
           </PrivateRoute>
         }
       />
+       <Route
+        path="/tlbc"
+        element={
+          <PrivateRoute>
+            <TLBCAttendancePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/tlbcqrcode"
+        element={
+          <PrivateRoute>
+            <TLBCQRCodeGenerator />
+          </PrivateRoute>
+        }
+      />
     </Routes>
 
-    <Footer />
+    
     </>
   );
 };

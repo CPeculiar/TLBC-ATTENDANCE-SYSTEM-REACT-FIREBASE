@@ -4,6 +4,7 @@ import { getDatabase, ref, get } from 'firebase/database';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import AdDashboardComponents from './AdDashboardComponents';
+import Footer from '../Layouts/Footer';
 // import '../../App.css';
 
 const AdminDashboard = () => {
@@ -51,6 +52,8 @@ const AdminDashboard = () => {
         
         <Container fluid>
            <AdDashboardComponents />
+           
+           <Footer />
            
     </Container>
   );

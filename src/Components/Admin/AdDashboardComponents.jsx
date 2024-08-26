@@ -13,6 +13,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { Eye } from 'lucide-react';
 import '../Styles/AdminDashboard.css'
+import TLBCAttendanceReport from '../TLBC-Attendance/TLBCAttendanceReport';
 
 
 
@@ -103,9 +104,10 @@ const AdminDashboard = () => {
               <Nav.Link onClick={() => setActiveComponent('dashboard')}><Speedometer2 /> Dashboard</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('attendance')}><List /> Attendance Report</Nav.Link>
               <Nav.Link onClick={() => setActiveComponent('firstTimers')}><Calendar /> First Timers</Nav.Link>
-              <Nav.Link onClick={() => setActiveComponent('search')}><SearchIcon /> Search</Nav.Link>
-              <Nav.Link onClick={() => setActiveComponent('profile')}><Person /> Profile</Nav.Link>
-              <Nav.Link onClick={() => setActiveComponent('settings')}><Gear /> Settings</Nav.Link>
+              {/* <Nav.Link onClick={() => setActiveComponent('search')}><SearchIcon /> Search</Nav.Link> */}
+              <Nav.Link onClick={() => setActiveComponent('tlbcattendance')}><List /> TLBC'24 Attendance Report</Nav.Link>
+              {/* <Nav.Link onClick={() => setActiveComponent('profile')}><Person /> Profile</Nav.Link> */}
+              {/* <Nav.Link onClick={() => setActiveComponent('settings')}><Gear /> Settings</Nav.Link> */}
               <Nav.Link onClick={() => setShowLogoutModal(true)}><BoxArrowRight /> Logout</Nav.Link>
             </Nav>
             <Nav>
@@ -120,6 +122,7 @@ const AdminDashboard = () => {
       <main className="main-content">
         {activeComponent === 'dashboard' && <DashboardContent />}
         {activeComponent === 'attendance' && <AttendanceReport />}
+        {activeComponent === 'tlbcattendance' && <TLBCAttendanceReport />}
         {activeComponent === 'firstTimers' && <FirstTimers />}
         {activeComponent === 'search' && <SearchComponent />}
         {activeComponent === 'profile' && <Profile />}
