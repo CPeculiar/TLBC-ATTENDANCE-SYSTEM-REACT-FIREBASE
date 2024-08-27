@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Button } from 'react-bootstrap';
+import { Container, Button, Form } from 'react-bootstrap';
 import QRCode from 'qrcode.react';
 
 const QRCodeGenerator = () => {
   const [qrValue, setQrValue] = useState('');
+  const [serviceType, setServiceType] = useState('');
 
   useEffect(() => {
     generateQRCode();
-  }, []);
+  }, [serviceType]);
 
   const generateQRCode = () => {
     const now = new Date();
@@ -16,22 +17,26 @@ const QRCodeGenerator = () => {
     const dayOfWeek = now.getDay();
     const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    let serviceType;
-    // if (dayOfWeek === 0) { // Sunday
-    //   serviceType = "Sunday Service";
-    // } else if (dayOfWeek === 3) { // Wednesday
-    //   serviceType = "Midweek Service";
-    // } else {
-      // Time-based service types
-      const time = hours * 60 + minutes;
-      if (time >= 7 * 60 && time <= 13 * 60) {
-        serviceType = "Morning Session";
-      } else if (time >= 13 * 60 + 20 && time <= 17 * 60 + 30) {
-        serviceType = "Afternoon Session";
-      } else {
-        serviceType = "Night Session";
-      }
+    // let serviceType;
+    //   const time = hours * 60 + minutes;
+    //   if (time >= 7 * 60 && time <= 13 * 60) {
+    //     serviceType = "Morning Session";
+    //   } else if (time >= 13 * 60 + 20 && time <= 17 * 60 + 30) {
+    //     serviceType = "Afternoon Session";
+    //   } else {
+    //     serviceType = "Night Session";
+    //   }
 
+    if (!serviceType) {
+      const time = now.getHours() * 60 + now.getMinutes();
+      if (time >= 7 * 60 && time <= 13 * 60) {
+        setServiceType("Morning Session");
+      } else if (time >= 13 * 60 + 20 && time <= 17 * 60 + 30) {
+        setServiceType("Afternoon Session");
+      } else {
+        setServiceType("Night Session");
+      }
+    }
 
     const churchId = `${serviceType} ${dateString}`;
 
@@ -44,9 +49,22 @@ const QRCodeGenerator = () => {
     setQrValue(value);
   };
 
+  const handleServiceTypeChange = (e) => {
+    setServiceType(e.target.value);
+  };
+
   return (
     <Container className="text-center">
       <h1>TLBC Attendance QR Code</h1>
+      <Form.Group className="mb-3">
+        <Form.Label>Select Session Type</Form.Label>
+        <Form.Control as="select" value={serviceType} onChange={handleServiceTypeChange}>
+          <option value="">Auto-detect</option>
+          <option value="Morning Session">Morning Session</option>
+          <option value="Afternoon Session">Afternoon Session</option>
+          <option value="Night Session">Night Session</option>
+        </Form.Control>
+      </Form.Group>
       <div className="my-4">
         <QRCode value={qrValue} size={256} />
       </div>

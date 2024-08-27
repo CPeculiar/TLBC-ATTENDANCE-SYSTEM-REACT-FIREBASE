@@ -1099,3 +1099,36 @@
       font-size: 20px;
     }
   }
+
+  
+
+  .qr-scanner-container {
+    position: relative;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 350px;
+    margin: 0 auto;
+  }
+  
+  .qr-scanner-container p {
+    margin-top: 10px;
+    color: white;
+  }
+  
+  .hero-content .alert {
+    max-width: 350px;
+    margin: 10px auto;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-content h2 {
+      font-size: 1.5rem;
+    }
+    
+    .hero-content .date-wrap,
+    .hero-content .location-wrap {
+      font-size: 0.9rem;
+    }
+  }

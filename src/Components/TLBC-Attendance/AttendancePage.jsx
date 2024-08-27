@@ -3,27 +3,27 @@ import React, { useEffect, useState } from "react";
 import { Button, Container, Row, Col,   Alert, Image, Spinner  } from "react-bootstrap";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  Timestamp,
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    collection,
+    Timestamp,
+    query,
+    where,
+    getDocs
 } from "firebase/firestore";
 import { Link, useNavigate } from 'react-router-dom';
 import AttendanceImage from "../../assets/Images/attendance.jpeg";
 import QrScanner from "react-qr-scanner";
 // import { db } from '../../Components/Services/firebaseConfig';
-
 import {  Book } from "lucide-react";
 import Navbar from '../Layouts/CustomNavbar.jsx';
 import Footer from './Footer.jsx';
 import './Tlbc.css';
 
 function HomePage() {
-
     const [buttonsVisible, setButtonsVisible] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,9 +42,10 @@ function HomePage() {
   const [scanned, setScanned] = useState(false);
   const [cameraId, setCameraId] = useState("environment");
   const [cameras, setCameras] = useState([]);
-  const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -99,7 +100,7 @@ function HomePage() {
     return null;
   };
 
-  const recordAttendance = async (userId, churchId) => {
+  const recordAttendance = async (userId, churchId, serviceType) => {
     setLoading(true);
     try {
       const db = getFirestore();
@@ -108,6 +109,22 @@ function HomePage() {
 
       if (attendanceDoc.exists()) {
         setMessage("You've already taken attendance for this session");
+        setLoading(false);
+        return false;
+      }
+
+      // Check if user has already scanned for this session type today
+      const today = new Date().toISOString().split('T')[0];
+      const attendanceQuery = query(
+        collection(db, "tlbc2024"),
+        where("userId", "==", userId),
+        where("attendanceDate", "==", today),
+        where("serviceType", "==", serviceType)
+      );
+      const querySnapshot = await getDocs(attendanceQuery);
+      
+      if (!querySnapshot.empty) {
+        setMessage("You've already taken attendance for this session type today");
         setLoading(false);
         return false;
       }
@@ -129,7 +146,9 @@ function HomePage() {
         email: user.email,
         fullName: fullName,
         attendanceTime: Timestamp.now(),
+        attendanceDate: today,
         churchId: churchId,
+        serviceType: serviceType,
         church: userData.church || "",
         zone: userData.zone || "",
         phone: userData.phone || "",
@@ -162,8 +181,8 @@ function HomePage() {
           return;
         }
 
-        setScanning(false);
-        const success = await recordAttendance(user.uid, scannedData.churchId);
+      setScanning(false);
+        const success = await recordAttendance(user.uid, scannedData.churchId, scannedData.serviceType);
         if (success) {
           setScanned(true);
         }
@@ -185,30 +204,25 @@ function HomePage() {
     setMessage("");
   };
 
-  const goHome = () => {
-      navigate('/dashboard');  
-    }
-
   const stopScanning = () => {
     setScanning(false);
   };
 
-  const toggleCamera = () => {
-    const currentIndex = cameras.findIndex(
-      (camera) => camera.deviceId === cameraId
-    );
-    const nextIndex = (currentIndex + 1) % cameras.length;
-    setCameraId(cameras[nextIndex].deviceId);
-  };
+  const goHome = () => {
+      navigate('/dashboard');  
+    }
 
-  if (!user) {
-    return <Container>Please log in to take attendance.</Container>;
-  }
-
-
-
-
-
+    const toggleCamera = () => {
+        const currentIndex = cameras.findIndex(
+          (camera) => camera.deviceId === cameraId
+        );
+        const nextIndex = (currentIndex + 1) % cameras.length;
+        setCameraId(cameras[nextIndex].deviceId);
+      };
+    
+      if (!user) {
+        return <Container>Please log in to take attendance.</Container>;
+      }
 
   return (
     <>
@@ -226,85 +240,63 @@ function HomePage() {
         <div className="container hero-content">
           <div className="row">
 
-
-
-
-
-
-
-
-
-
-
-            <div className="col-12 mt-auto mb-5 text-center" id='homee'>
+          <div className="col-12 mt-auto mb-5 text-center" id='homee'>
               <small className='text-white'>The Lord's Brethren Church International Presents</small>
               <h2 className="text-white mb-1">The Lord's Brethren Convocation '24</h2>
             </div>
 
+            <div className="col-12 mt-auto mb-5 text-center">
 
-<div className="col-12 mt-auto mb-5 text-center">
-
-
-{!scanning && !scanned && !message && (
-        <Button onClick={startScanning} className="d-block mx-auto mt-4 w-50 mb-4" 
-        style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "3em"}}>
-          Check-in for today's session
-        </Button>
-        
-      )}
-      {scanning && (
-        <div>
-          <QrScanner
-            delay={180}
-            onError={handleError}
-            onScan={handleScan}
-            style={{ width: "100%" }}
-            constraints={{
-              video: { deviceId: cameraId },
-            }}
-          />
+            {!scanning && !scanned && !message && (
+                <Button onClick={startScanning} className="d-block mx-auto mt-4 w-50 mb-4" 
+                style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "3em"}}>
+                  Check-in for today's session
+                </Button>
+              )}
+              {scanning && (
+                <div className="qr-scanner-container">
+                  <QrScanner
+                    delay={180}
+                    onError={handleError}
+                    onScan={handleScan}
+                    style={{ width: "100%", maxWidth: "300px", margin: "0 auto" }}
+                    constraints={{
+                      video: { deviceId: cameraId },
+                    }}
+                  />
           <p style={{color: "white"}}>Please scan the QR code displayed in the church.</p>
-          <Row className="mt-3">
-            <Col>
-              <Button onClick={toggleCamera} disabled={cameras.length <= 1} 
-              style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder"}}>
-                Switch Camera
-              </Button>
-            </Col>
-            <Col>
-              <Button variant="danger" onClick={stopScanning}
-              style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder",}}>
-                Stop Scanning
-              </Button>
-            </Col>
-          </Row>
-        </div>
-      )}
-      {loading && (
-        <Spinner animation="border" role="status">
-          <span className="sr-only"></span>
-        </Spinner>
-      )}
-      {message && <Alert variant="info">{message}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
+                  <Row className="mt-3 justify-content-center">
+                    <Col xs={6}>
+                      <Button onClick={toggleCamera} disabled={cameras.length <= 1} 
+                      style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
+                        Switch Camera
+                      </Button>
+                    </Col>
+                    <Col xs={6}>
+                      <Button variant="danger" onClick={stopScanning}
+                      style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
+                        Stop Scanning
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
+              )}
+              {loading && (
+                <Spinner animation="border" role="status">
+                  <span className="sr-only"></span>
+                </Spinner>
+              )}
+              {message && <Alert variant="info">{message}</Alert>}
+              {error && <Alert variant="danger">{error}</Alert>}
+            </div>
 
-
-</div>
-
-
-            
             <div className="col-lg-12 col-12 d-flex flex-column flex-lg-row text-center" id='homeee'>
-
-
-           
               <div className="date-wrap">
                 <h5 className="text-white">
                   <i className="custom-icon bi-clock me-2"></i>
                   31st Aug - 4th Sept<sup></sup>, 2024
                 </h5>
               </div>
-
-         
 
               <div className="location-wrap mx-auto py-3 py-lg-0">
                 <h5 className="text-white">
@@ -313,17 +305,6 @@ function HomePage() {
                 </h5>
               </div>
             </div>
-
-            <div
-                        className={`button-container ${
-                          buttonsVisible ? "fade-in" : ""
-                        }`}
-                        style={{ zIndex: 2, marginTop: "1rem",  marginBottom: "2rem" }}
-                      >
-
-                      </div>
-
-
 
           </div>
         </div>
@@ -335,12 +316,6 @@ function HomePage() {
           </video>
         </div>
       </section>
-
-      
-
-      
-
-      
 
       <Footer />
     </>
