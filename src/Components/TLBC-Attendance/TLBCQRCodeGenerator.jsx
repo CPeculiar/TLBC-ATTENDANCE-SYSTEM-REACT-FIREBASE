@@ -12,9 +12,6 @@ const QRCodeGenerator = () => {
 
   const generateQRCode = () => {
     const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const dayOfWeek = now.getDay();
     const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD format
 
     // let serviceType;
@@ -38,7 +35,7 @@ const QRCodeGenerator = () => {
       }
     }
 
-    const churchId = `${serviceType} ${dateString}`;
+    const churchId = `${serviceType}_${dateString}`;
 
     const value = JSON.stringify({
       type: 'tlbc_attendance',

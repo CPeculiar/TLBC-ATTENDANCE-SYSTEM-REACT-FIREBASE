@@ -104,17 +104,18 @@ function HomePage() {
     setLoading(true);
     try {
       const db = getFirestore();
-      const attendanceRef = doc(collection(db, "tlbc2024"), `${userId}_${churchId}`);
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const attendanceRef = doc(collection(db, "tlbc2024"), `${userId}_${churchId}_${today}`);
       const attendanceDoc = await getDoc(attendanceRef);
 
       if (attendanceDoc.exists()) {
-        setMessage("You've already taken attendance for this session");
+        setMessage("You've already taken attendance for this session today");
         setLoading(false);
         return false;
       }
 
       // Check if user has already scanned for this session type today
-      const today = new Date().toISOString().split('T')[0];
       const attendanceQuery = query(
         collection(db, "tlbc2024"),
         where("userId", "==", userId),
@@ -241,54 +242,59 @@ function HomePage() {
           <div className="row">
 
           <div className="col-12 mt-auto mb-5 text-center" id='homee'>
-              <small className='text-white'>The Lord's Brethren Church International Presents</small>
+
+
+          <div className="col-12 mt-auto mb-5 text-center">
+
+{!scanning && !scanned && !message && (
+    <Button onClick={startScanning} className="d-block mx-auto mt-4 w-50 mb-4" 
+    style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "4em"}}>
+      Check-in for today's session
+    </Button>
+  )}
+  {scanning && (
+    <div className="qr-scanner-container">
+      <QrScanner
+        delay={180}
+        onError={handleError}
+        onScan={handleScan}
+        style={{ width: "100%", maxWidth: "300px", margin: "0 auto" }}
+        constraints={{
+          video: { deviceId: cameraId },
+        }}
+      />
+<p style={{color: "white"}}>Please scan the QR code displayed in the church.</p>
+      <Row className="mt-3 justify-content-center">
+        <Col xs={6}>
+          <Button onClick={toggleCamera} disabled={cameras.length <= 1} 
+          style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
+            Switch Camera
+          </Button>
+        </Col>
+        <Col xs={6}>
+          <Button variant="danger" onClick={stopScanning}
+          style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
+            Stop Scanning
+          </Button>
+        </Col>
+      </Row>
+    </div>
+  )}
+  {loading && (
+    <Spinner animation="border" role="status">
+      <span className="sr-only"></span>
+    </Spinner>
+  )}
+  {message && <Alert variant="info">{message}</Alert>}
+  {error && <Alert variant="danger">{error}</Alert>}
+</div>
+
+
+              <small className='text-white mt-3'>The Lord's Brethren Church International Presents</small>
               <h2 className="text-white mb-1">The Lord's Brethren Convocation '24</h2>
             </div>
 
-            <div className="col-12 mt-auto mb-5 text-center">
-
-            {!scanning && !scanned && !message && (
-                <Button onClick={startScanning} className="d-block mx-auto mt-4 w-50 mb-4" 
-                style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "4em"}}>
-                  Check-in for today's session
-                </Button>
-              )}
-              {scanning && (
-                <div className="qr-scanner-container">
-                  <QrScanner
-                    delay={180}
-                    onError={handleError}
-                    onScan={handleScan}
-                    style={{ width: "100%", maxWidth: "300px", margin: "0 auto" }}
-                    constraints={{
-                      video: { deviceId: cameraId },
-                    }}
-                  />
-          <p style={{color: "white"}}>Please scan the QR code displayed in the church.</p>
-                  <Row className="mt-3 justify-content-center">
-                    <Col xs={6}>
-                      <Button onClick={toggleCamera} disabled={cameras.length <= 1} 
-                      style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
-                        Switch Camera
-                      </Button>
-                    </Col>
-                    <Col xs={6}>
-                      <Button variant="danger" onClick={stopScanning}
-                      style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", width: "100%"}}>
-                        Stop Scanning
-                      </Button>
-                    </Col>
-                  </Row>
-                </div>
-              )}
-              {loading && (
-                <Spinner animation="border" role="status">
-                  <span className="sr-only"></span>
-                </Spinner>
-              )}
-              {message && <Alert variant="info">{message}</Alert>}
-              {error && <Alert variant="danger">{error}</Alert>}
-            </div>
+           
 
             <div className="col-lg-12 col-12 d-flex flex-column flex-lg-row text-center" id='homeee'>
               <div className="date-wrap">
@@ -316,8 +322,9 @@ function HomePage() {
           </video>
         </div>
       </section>
-
-      <Footer />
+<div className="footer">
+      <Footer className="mt-3"/>
+      </div>
     </>
   )
 }
