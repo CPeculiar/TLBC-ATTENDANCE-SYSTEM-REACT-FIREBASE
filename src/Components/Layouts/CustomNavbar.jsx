@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 function CustomNavbar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleHomeClick = () => {
     navigate('/');
@@ -23,6 +24,15 @@ function CustomNavbar() {
     navigate('/firsttimers');
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      alert('Failed to log out: ' + error.message);
+    }
+  };
+
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="custom-navbar">
       <Container className="d-flex justify-content-between align-items-center custom-container">
@@ -36,6 +46,7 @@ function CustomNavbar() {
             <Nav.Link onClick={handleRegisterClick}>Register</Nav.Link>
             <Nav.Link onClick={handleFirstTimersClick}>First-Timers</Nav.Link>
             <Nav.Link onClick={handleLoginClick}>Login</Nav.Link>
+            <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

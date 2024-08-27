@@ -13,11 +13,8 @@ import {
     where,
     getDocs
 } from "firebase/firestore";
-import { Link, useNavigate } from 'react-router-dom';
-import AttendanceImage from "../../assets/Images/attendance.jpeg";
+import { useNavigate } from 'react-router-dom';
 import QrScanner from "react-qr-scanner";
-// import { db } from '../../Components/Services/firebaseConfig';
-import {  Book } from "lucide-react";
 import Navbar from '../Layouts/CustomNavbar.jsx';
 import Footer from './Footer.jsx';
 import './Tlbc.css';
@@ -32,10 +29,6 @@ function HomePage() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
 
   const [user, setUser] = useState(null);
   const [scanning, setScanning] = useState(false);
@@ -125,7 +118,7 @@ function HomePage() {
       const querySnapshot = await getDocs(attendanceQuery);
       
       if (!querySnapshot.empty) {
-        setMessage("You've already taken attendance for this session type today");
+        setMessage("You've already taken attendance for this session today");
         setLoading(false);
         return false;
       }

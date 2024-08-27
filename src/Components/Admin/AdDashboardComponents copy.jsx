@@ -8,9 +8,10 @@ import { Bell, List, Calendar, Search as SearchIcon, Person, Gear, BoxArrowRight
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { Eye } from 'lucide-react';
 import '../Styles/AdminDashboard.css'
 import TLBCAttendanceReport from '../TLBC-Attendance/TLBCAttendanceReport';
 
@@ -1007,115 +1008,41 @@ const AttendanceReport = () => {
     const [error, setError] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [selectedFirstTimer, setSelectedFirstTimer] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
   
     const db = getFirestore();
-    const itemsPerPage = 20;
-
-   
   
     useEffect(() => {
-      fetchMostRecentFirstTimers();
+      fetchFirstTimers(selectedDate);
     }, []);
-  
-    const fetchMostRecentFirstTimers = async () => {
-      setLoading(true);
-      setError('');
-      
-      try {
-        const attendanceRef = collection(db, 'tlbc2024');
-        const recentQuery = query(attendanceRef, orderBy('attendanceTime', 'desc'), limit(1));
-        const querySnapshot = await getDocs(recentQuery);
-        
-        if (!querySnapshot.empty) {
-          const mostRecentDoc = querySnapshot.docs[0];
-          const mostRecentData = mostRecentDoc.data();
-          setSelectedDate(mostRecentData.attendanceTime.toDate());
-          await fetchFirstTimers(mostRecentData.attendanceTime.toDate());
-        } else {
-          setError('No attendance records found.');
-          setFirstTimers([]);
-        }
-      } catch (error) {
-        setError('Error fetching recent attendance data: ' + error.message);
-        setFirstTimers([]);
-      }
-      setLoading(false);
-    };
   
     const fetchFirstTimers = async (date) => {
       setLoading(true);
       setError('');
   
-      const formattedDate = date.toISOString().split('T')[0];
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
   
       try {
-        const attendanceRef = collection(db, 'tlbc2024');
         const firstTimersRef = collection(db, 'firsttimers');
-  
-        let dateQuery = query(
-          attendanceRef,
-          where('attendanceDate', '==', formattedDate),
-          orderBy('attendanceTime', 'asc')
+        const q = query(
+          firstTimersRef,
+          where('visitDate', '>=', Timestamp.fromDate(startOfDay)),
+          where('visitDate', '<=', Timestamp.fromDate(endOfDay))
         );
   
-        const [attendanceSnapshot, firstTimersSnapshot] = await Promise.all([
-          getDocs(dateQuery),
-          getDocs(firstTimersRef)
-        ]);
-  
-        const firstTimersData = await Promise.all(firstTimersSnapshot.docs.map(async (doc) => {
-          const data = doc.data();
-          
-          // Handle different date formats
-          let visitDate;
-
-          if (data.visitDate instanceof Date) {
-              // It's already a Date object, use it as is
-              visitDate = data.visitDate;
-          } else if (data.visitDate?.seconds) {
-              // If it's a Firestore Timestamp (check for seconds field), convert it to Date
-              visitDate = new Date(data.visitDate.seconds * 1000);
-          } else if (data.dateOfComing) {
-              // Convert dateOfComing string to Date object
-              visitDate = new Date(data.dateOfComing);
-          } else {
-              // Attempt to parse visitDate as a Date object
-              visitDate = new Date(data.visitDate);
-          }
-          
-          const isVisitDateMatch = visitDate.toISOString().split('T')[0] === formattedDate;
-  
-          // Find matching attendance record
-          const attendanceRecord = attendanceSnapshot.docs.find(aDoc => 
-            aDoc.data().userId === doc.id && 
-            aDoc.data().attendanceDate === formattedDate
-          );
-  
-          if (isVisitDateMatch || attendanceRecord) {
-            return {
-              id: doc.id,
-              ...data,
-              fullName: `${data.firstName} ${data.lastName}`,
-              status: 'First Timer',
-              attendanceTime: attendanceRecord ? attendanceRecord.data().attendanceTime : null,
-              visitDate: visitDate
-            };
-          }
-          return null;
+        const querySnapshot = await getDocs(q);
+        const firstTimersData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
         }));
   
-        const validFirstTimers = firstTimersData.filter(ft => ft !== null);
-  
-        setFirstTimers(validFirstTimers);
-        setTotalPages(Math.ceil(validFirstTimers.length / itemsPerPage));
-  
-        if (validFirstTimers.length === 0) {
-          setError('No first timers found for the selected date.');
+        setFirstTimers(firstTimersData);
+        if (firstTimersData.length === 0) {
+          setError('No data found for the selected date.');
         }
       } catch (error) {
-        console.error('Error fetching first timers data:', error);
         setError('Error fetching first timers data: ' + error.message);
       }
   
@@ -1140,7 +1067,7 @@ const AttendanceReport = () => {
         head: [['#', 'Name', 'Phone', 'Email', 'Cell', 'Invited By', 'Department', 'Be A Member']],
         body: firstTimers.map((firstTimer, index) => [
           index + 1,
-          firstTimer.fullName,
+          `${firstTimer.firstName} ${firstTimer.lastName}`,
           firstTimer.phone,
           firstTimer.email,
           firstTimer.cell,
@@ -1157,64 +1084,8 @@ const AttendanceReport = () => {
       setShowModal(true);
     };
   
-    const handlePageChange = (pageNumber) => {
-      setCurrentPage(pageNumber);
-    };
-  
-    const renderPagination = () => {
-      let items = [];
-      for (let number = 1; number <= totalPages; number++) {
-        items.push(
-          <Pagination.Item 
-            key={number} 
-            active={number === currentPage}
-            onClick={() => handlePageChange(number)}
-          >
-            {number}
-          </Pagination.Item>,
-        );
-      }
-  
-      return (
-        <Pagination>
-          <Pagination.Prev 
-            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft size={16} />
-          </Pagination.Prev>
-          {items}
-          <Pagination.Next 
-            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRight size={16} />
-          </Pagination.Next>
-        </Pagination>
-      );
-    };
-  
     const ProfileModal = ({ show, onHide, firstTimer }) => {
       if (!firstTimer) return null;
-      const visitDate = firstTimer.visitDate;
-
-  // Handle visitDate safely
-  let visitDateDisplay = 'N/A'; // Default value if visitDate is not valid
-  if (firstTimer.visitDate) {
-    if (firstTimer.visitDate.toDate) {
-      // Firestore Timestamp object
-      visitDateDisplay = firstTimer.visitDate.toDate().toLocaleString();
-    } else if (firstTimer.visitDate instanceof Date) {
-      // JavaScript Date object
-      visitDateDisplay = firstTimer.visitDate.toLocaleString();
-    } else if (typeof firstTimer.visitDate === 'string' || typeof firstTimer.visitDate === 'number') {
-      // Parse string or number as Date
-      visitDateDisplay = new Date(firstTimer.visitDate).toLocaleString();
-    }
-
-    console.log('visitDate:', firstTimer.visitDate);
-console.log('Type of visitDate:', typeof firstTimer.visitDate);
-  }
   
       return (
         <Modal show={show} onHide={onHide} size="lg">
@@ -1227,7 +1098,7 @@ console.log('Type of visitDate:', typeof firstTimer.visitDate);
                 <Image src={firstTimer.profilePictureUrl} alt="Profile Picture" fluid />
               </Col>
               <Col md={8}>
-                <h4>{firstTimer.fullName}</h4>
+                <h4>{`${firstTimer.firstName} ${firstTimer.lastName}`}</h4>
                 <p><strong>Email:</strong> {firstTimer.email}</p>
                 <p><strong>Phone:</strong> {firstTimer.phone}</p>
                 <p><strong>Cell:</strong> {firstTimer.cell}</p>
@@ -1240,8 +1111,8 @@ console.log('Type of visitDate:', typeof firstTimer.visitDate);
                 <p><strong>Be A Member:</strong> {firstTimer.beAMember}</p>
                 <p><strong>Church:</strong> {firstTimer.church}</p>
                 <p><strong>Zone:</strong> {firstTimer.zone}</p>
-                <p><strong>Visit Date:</strong> {firstTimer.visitDate?.toLocaleString()}</p>
-                <p><strong>Address:</strong> {`${firstTimer.address?.city}, ${firstTimer.address?.state}, ${firstTimer.address?.country}`}</p>
+                <p><strong>Visit Date:</strong> {firstTimer.visitDate.toDate().toLocaleString()}</p>
+                <p><strong>Address:</strong> {`${firstTimer.address.city}, ${firstTimer.address.state}, ${firstTimer.address.country}`}</p>
               </Col>
             </Row>
           </Modal.Body>
@@ -1283,12 +1154,10 @@ console.log('Type of visitDate:', typeof firstTimer.visitDate);
                     </tr>
                   </thead>
                   <tbody>
-                    {firstTimers
-                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                      .map((firstTimer, index) => (
+                    {firstTimers.map((firstTimer, index) => (
                       <tr key={firstTimer.id}>
-                        <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                        <td>{firstTimer.fullName}</td>
+                        <td>{index + 1}</td>
+                        <td>{`${firstTimer.firstName} ${firstTimer.lastName}`}</td>
                         <td>{firstTimer.phone}</td>
                         <td>{firstTimer.email}</td>
                         <td>{firstTimer.cell}</td>
@@ -1305,7 +1174,6 @@ console.log('Type of visitDate:', typeof firstTimer.visitDate);
                   </tbody>
                 </Table>
               </div>
-              {renderPagination()}
               <Button onClick={downloadPDF} className="mt-3">Download PDF</Button>
             </>
           )}
@@ -1314,6 +1182,7 @@ console.log('Type of visitDate:', typeof firstTimer.visitDate);
       </Card>
     );
   };
+  
   
   
   // Search Component (placeholder)

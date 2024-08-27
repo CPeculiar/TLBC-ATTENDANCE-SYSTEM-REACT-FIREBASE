@@ -31,7 +31,7 @@ const QRCodeGenerator = () => {
       } else if (time >= 13 * 60 + 20 && time <= 17 * 60 + 30) {
         setServiceType("Afternoon Session");
       } else {
-        setServiceType("Night Session");
+        setServiceType("Evening Session");
       }
     }
 
@@ -59,7 +59,7 @@ const QRCodeGenerator = () => {
           <option value="">Auto-detect</option>
           <option value="Morning Session">Morning Session</option>
           <option value="Afternoon Session">Afternoon Session</option>
-          <option value="Night Session">Night Session</option>
+          <option value="Evening Session">Evening Session</option>
         </Form.Control>
       </Form.Group>
       <div className="my-4">

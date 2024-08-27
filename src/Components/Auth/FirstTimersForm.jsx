@@ -494,6 +494,7 @@ const FirstTimersForm = () => {
                       <option value="Nnewi zone">Nnewi zone</option>
                       <option value="Owerri zone">Owerri zone</option>
                       <option value="Ekwulobia zone">Ekwulobia zone</option>
+                      <option value="others">Others</option>
                     </select>
                     {error.zone && <span className="text-danger">{error.zone}</span>}
                   </div>
@@ -517,7 +518,7 @@ const FirstTimersForm = () => {
 
                 <div className="row mb-3">
                   <div className="col-md-4">
-                    <label htmlFor="beAMember" className="form-label">Will you like to be a member?</label>
+                    <label htmlFor="beAMember" className="form-label">Will you like to be a member of TLBC?</label>
                     <select
                       type="text"
                       className="form-select"

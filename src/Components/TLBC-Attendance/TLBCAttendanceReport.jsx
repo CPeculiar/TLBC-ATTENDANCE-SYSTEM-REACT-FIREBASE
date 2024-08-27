@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
-import { Container, Form, Button, Alert, Table, Pagination, Modal, Col, Image  } from 'react-bootstrap';
+import { Container, Form, Button, Alert, Table, Pagination, Modal,  } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 const TLBCAttendanceReport = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [churchId, setChurchId] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filterMode, setFilterMode] = useState(false);
-  const [firstTimers, setFirstTimers] = useState(0);
-  const [showProfile, setShowProfile] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedSession, setSelectedSession] = useState('');
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [churchId, setChurchId] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [firstTimers, setFirstTimers] = useState(0);
+    const [showProfile, setShowProfile] = useState(false);
+    const [selectedProfile, setSelectedProfile] = useState(null);
 
   const db = getFirestore();
   const itemsPerPage = 20;
@@ -57,79 +57,81 @@ const TLBCAttendanceReport = () => {
     setLoading(true);
     setError('');
     
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    // const startOfDay = new Date(date);
+    // startOfDay.setHours(0, 0, 0, 0);
+    // const endOfDay = new Date(date);
+    // endOfDay.setHours(23, 59, 59, 999);
+
+    const formattedDate = date.toISOString().split('T')[0];
 
     try {
-      const attendanceRef = collection(db, 'tlbc2024');
-      const usersRef = collection(db, 'users');
-      const firstTimersRef = collection(db, 'firsttimers');
+        const attendanceRef = collection(db, 'tlbc2024');
+        const usersRef = collection(db, 'users');
+        const firstTimersRef = collection(db, 'firsttimers');
+  
+        let dateQuery = query(
+          attendanceRef,
+          where('attendanceDate', '==', formattedDate),
+          orderBy('attendanceTime', 'asc')
+        );
+  
+        if (selectedSession) {
+          dateQuery = query(dateQuery, where('serviceType', '==', selectedSession));
+        }
 
-      const dateQuery = query(
-        attendanceRef,
-        where('attendanceTime', '>=', startOfDay),
-        where('attendanceTime', '<=', endOfDay),
-        orderBy('attendanceTime', 'asc')
-      );
-
-      const firstTimersQuery = query(
-        firstTimersRef,
-        where('visitDate', '>=', startOfDay),
-        where('visitDate', '<=', endOfDay)
-      );
+        const [attendanceSnapshot, firstTimersSnapshot] = await Promise.all([
+            getDocs(dateQuery),
+            getDocs(query(firstTimersRef, where('visitDate', '==', formattedDate)))
+          ]);
       
-      const [attendanceSnapshot, firstTimersSnapshot] = await Promise.all([
-        getDocs(dateQuery),
-        getDocs(firstTimersQuery)
-      ]);
-      
-      const attendanceRecords = await Promise.all(attendanceSnapshot.docs.map(async (attendanceDoc) => {
+          const attendanceRecords = await Promise.all(attendanceSnapshot.docs.map(async (attendanceDoc) => {
         const attendanceData = attendanceDoc.data();
         let userData;
-        let isFirstTimer = false;
+        //   let isFirstTimer = false;
         
         // Check in users collection first
         const userRef = doc(db, 'users', attendanceData.userId);
-      let userDoc = await getDoc(userRef);
+        let userDoc = await getDoc(userRef);
 
         // If not found in users, check in firsttimers
         if (!userDoc.exists()) {
-        const firstTimerRef = doc(db, 'firsttimers', attendanceData.userId);
-        userDoc = await getDoc(firstTimerRef);
-        isFirstTimer = true;
+            const firstTimerRef = doc(db, 'firsttimers', attendanceData.userId);
+            userDoc = await getDoc(firstTimerRef);
+        // isFirstTimer = true;
       }
       
       userData = userDoc.data();
         
+      
+     
       return {
         id: attendanceDoc.id,
-        ...attendanceData,
-        fullName: attendanceData.fullName || `${userData?.firstName} ${userData?.lastName}`,
-        phone: userData?.phone,
-        zone: userData?.zone,
-        church: attendanceData.church,
-        role: isFirstTimer ? 'First Timer' : 'User',
-        userId: attendanceData.userId,
-        isFirstTimer
-      };
-    }));
+          ...attendanceData,
+          fullName: attendanceData.fullName || `${userData?.firstName} ${userData?.lastName}`,
+          phone: userData?.phone,
+          zone: userData?.zone,
+          church: attendanceData.church,
+          status: userData?.role === 'firstTimer' ? 'First Timer' : 'Member',
+        //role: isFirstTimer ? 'First Timer' : 'User',
+       userId: attendanceData.userId,
+        };
+      }));
 
-      const firstTimerCount = firstTimersSnapshot.size;
+      const firstTimerCount = attendanceRecords.filter(record => record.status === 'First Timer').length;
 
       if (attendanceRecords.length > 0) {
         setAttendanceData(attendanceRecords);
-        setChurchId(attendanceRecords[0]?.churchId || '');
+        setChurchId(attendanceRecords[0]?.church || '');
         setTotalPages(Math.ceil(attendanceRecords.length / itemsPerPage));
         setFirstTimers(firstTimerCount);
       } else {
-        setError('No attendance records found for the selected date.');
+        setError('No attendance records found for the selected date and session.');
         setAttendanceData([]);
         setChurchId('');
-        setFirstTimers(firstTimerCount);
+        setFirstTimers(0);
       }
     } catch (error) {
+      console.error('Error fetching attendance data:', error);
       setError('Error fetching attendance data: ' + error.message);
       setAttendanceData([]);
       setChurchId('');
@@ -138,9 +140,14 @@ const TLBCAttendanceReport = () => {
     setLoading(false);
   };
 
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    setFilterMode(true);
+    setSelectedSession('');
+  };
+
+  const handleSessionChange = (e) => {
+    setSelectedSession(e.target.value);
   };
 
   const handleSubmit = (e) => {
@@ -165,6 +172,7 @@ const TLBCAttendanceReport = () => {
         </Pagination.Item>,
       );
     }
+
     return (
       <Pagination>
         <Pagination.Prev 
@@ -192,7 +200,7 @@ const TLBCAttendanceReport = () => {
     doc.text(`First Timers: ${firstTimers}`, 10, 40);
     doc.autoTable({
       startY: 50,
-      head: [['#', 'Full Name', 'Church', 'Attendance Time', 'Zone', 'Phone']],
+      head: [['#', 'Full Name', 'Church', 'Attendance Time', 'Zone', 'Phone', 'Status', 'Session']],
       body: attendanceData.map((record, index) => [
         index + 1,
         record.fullName,
@@ -200,7 +208,8 @@ const TLBCAttendanceReport = () => {
         record.attendanceTime.toDate().toLocaleString(),
         record.zone,
         record.phone,
-        record.role
+        record.status,
+        record.serviceType
       ])
     });
     doc.save(`Attendance Report for ${selectedDate.toDateString()}.pdf`);
@@ -211,10 +220,15 @@ const TLBCAttendanceReport = () => {
     currentPage * itemsPerPage
   );
 
-  const handleShowProfile = async (userId, isFirstTimer) => {
+  const handleShowProfile = async (userId) => {
     try {
-      const userRef = doc(db, isFirstTimer ? 'firsttimers' : 'users', userId);
-      const userDoc = await getDoc(userRef);
+      const userRef = doc(db, 'users', userId);
+      let userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        const firstTimerRef = doc(db, 'firsttimers', userId);
+        userDoc = await getDoc(firstTimerRef);
+      }
       
       if (userDoc.exists()) {
         setSelectedProfile(userDoc.data());
@@ -232,6 +246,7 @@ const TLBCAttendanceReport = () => {
     setSelectedProfile(null);
   };
 
+
   return (
     <Container fluid>
       <h2>View Attendance Record</h2>
@@ -244,6 +259,18 @@ const TLBCAttendanceReport = () => {
               dateFormat="yyyy-MM-dd"
             />
           </Form.Group>
+        <Form.Group className="mt-2">
+            <Form.Select 
+              value={selectedSession} 
+              onChange={handleSessionChange}
+              disabled={!selectedDate}
+            >
+              <option value="">All Sessions</option>
+              <option value="Morning Session">Morning Session</option>
+              <option value="Afternoon Session">Afternoon Session</option>
+              <option value="Evening Session">Evening Session</option>
+            </Form.Select>
+          </Form.Group>
         </div>
         <Button type="submit" className='mt-3'>Fetch Attendance</Button>
       </Form>
@@ -251,40 +278,42 @@ const TLBCAttendanceReport = () => {
       {error && <Alert variant="danger">{error}</Alert>}
       {attendanceData.length > 0 && (
         <>
-          <h3>{churchId}</h3>
+        <h3>{churchId}</h3>
           <p style={{fontWeight: 'bold'}}>Date: {selectedDate.toDateString()}</p>
           <p style={{fontWeight: 'bold'}}>Total attendance: {attendanceData.length}</p>
           <p style={{fontWeight: 'bold'}}>First Timers: {firstTimers}</p>
           <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Full Name</th>
-            <th>Church</th>
-            <th>Attendance Time</th>
-            <th>Zone</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-        {currentAttendanceData.map((record, index) => (
-            <tr key={record.id}>
-              <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-              <td>{record.fullName}</td>
-              <td>{record.church}</td>
-              <td>{record.attendanceTime.toDate().toLocaleString()}</td>
-              <td>{record.zone}</td>
-              <td>{record.phone}</td>
-              <td>{record.role}</td>
-              <td>
-                <Eye
-                  size={20}
-                  onClick={() => handleShowProfile(record.userId, record.isFirstTimer)}
-                  style={{ cursor: 'pointer' }}
-                />
-              </td>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Church</th>
+                <th>Attendance Time</th>
+                <th>Zone</th>
+                <th>Phone</th>
+                <th>Status</th>
+                {!selectedSession && <th>Session</th>}
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentAttendanceData.map((record, index) => (
+                <tr key={record.id}>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td>{record.fullName}</td>
+                  <td>{record.church}</td>
+                  <td>{record.attendanceTime.toDate().toLocaleString()}</td>
+                  <td>{record.zone}</td>
+                  <td>{record.phone}</td>
+                  <td>{record.status}</td>
+                  {!selectedSession && <td>{record.serviceType}</td>}
+                  <td>
+                    <Eye
+                      size={20}
+                      onClick={() => handleShowProfile(record.userId)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -296,15 +325,14 @@ const TLBCAttendanceReport = () => {
         </>
       )}
 
-      <Modal show={showProfile} onHide={() => setShowProfile(false)} size="lg">
+      <Modal show={showProfile} onHide={handleCloseProfile} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>User Profile</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedProfile && (
-            
             <div>
-            {selectedProfile.profilePictureUrl && (
+              {selectedProfile.profilePictureUrl && (
                 <div className="text-center mb-3">
                   <img
                     src={selectedProfile.profilePictureUrl}
@@ -313,9 +341,7 @@ const TLBCAttendanceReport = () => {
                   />
                 </div>
               )}
-
               {Object.entries(selectedProfile).map(([key, value]) => {
-                // Skip displaying complex objects or functions
                 if (key !== 'profilePictureUrl' && typeof value !== 'object' && typeof value !== 'function') {
                   return (
                     <p key={key}>
@@ -329,13 +355,12 @@ const TLBCAttendanceReport = () => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowProfile(false)}>
+          <Button variant="secondary" onClick={handleCloseProfile}>
             Close
           </Button>
         </Modal.Footer>
       </Modal>
     </Container>
-
   );
 };
 

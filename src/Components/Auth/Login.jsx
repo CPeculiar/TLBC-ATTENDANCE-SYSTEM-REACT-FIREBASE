@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Button } from "react-bootstrap";
 import CustomNavbar from "../Layouts/CustomNavbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
