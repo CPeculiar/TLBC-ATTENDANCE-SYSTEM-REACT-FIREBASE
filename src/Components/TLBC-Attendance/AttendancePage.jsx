@@ -249,7 +249,7 @@ function HomePage() {
 
             {!scanning && !scanned && !message && (
                 <Button onClick={startScanning} className="d-block mx-auto mt-4 w-50 mb-4" 
-                style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "3em"}}>
+                style={{backgroundColor: "#EE5007",  border: "none", fontWeight: "bolder", height: "4em"}}>
                   Check-in for today's session
                 </Button>
               )}
