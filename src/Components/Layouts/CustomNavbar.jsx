@@ -1,11 +1,14 @@
 import React from "react";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import '../Styles/CustomNavbar.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from "../../Contexts/AuthContext";
 
 function CustomNavbar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const location = useLocation();
+
 
   const handleHomeClick = () => {
     navigate('/');
@@ -43,10 +46,16 @@ function CustomNavbar() {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto nav-links">
             <Nav.Link onClick={handleHomeClick}>Home</Nav.Link>
+            {/* Show "Login" only on the homepage and when the user is not logged in */}
+            {!currentUser && location.pathname === '/' && (
+              <Nav.Link onClick={handleLoginClick}>Login</Nav.Link>
+            )}
             <Nav.Link onClick={handleRegisterClick}>Register</Nav.Link>
             <Nav.Link onClick={handleFirstTimersClick}>First-Timers</Nav.Link>
-            <Nav.Link onClick={handleLoginClick}>Login</Nav.Link>
-            <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
+           {/* Show "Logout" only when the user is logged in */}
+           {currentUser && (
+              <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>
